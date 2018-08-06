@@ -1,0 +1,2 @@
+Common targets are:
+    questone2-image
