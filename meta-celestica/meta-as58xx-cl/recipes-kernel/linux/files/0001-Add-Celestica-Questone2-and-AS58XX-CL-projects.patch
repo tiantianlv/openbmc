@@ -1,0 +1,246 @@
+From b79e793273576854fed1efa01ec485811b543551 Mon Sep 17 00:00:00 2001
+From: zmzhan <mzhan@celestica.com>
+Date: Tue, 7 Aug 2018 13:42:04 +0800
+Subject: [PATCH] Add Celestica Questone2 and AS58XX-CL projects
+
+---
+ arch/arm/mach-aspeed/Kconfig             | 12 ++++++++
+ arch/arm/plat-aspeed/Makefile            | 10 +++++++
+ arch/arm/plat-aspeed/dev-eth.c           |  3 +-
+ arch/arm/plat-aspeed/dev-i2c-cel.c       | 50 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-aspeed/dev-sdhci.c         |  5 ++++
+ arch/arm/plat-aspeed/dev-uart.c          | 22 ++++++++++++--
+ drivers/net/ethernet/faraday/ftgmac100.c | 13 +++++++--
+ 7 files changed, 110 insertions(+), 5 deletions(-)
+ create mode 100644 arch/arm/plat-aspeed/dev-i2c-cel.c
+
+diff --git a/arch/arm/mach-aspeed/Kconfig b/arch/arm/mach-aspeed/Kconfig
+index f37d9da..ebba36c 100644
+--- a/arch/arm/mach-aspeed/Kconfig
++++ b/arch/arm/mach-aspeed/Kconfig
+@@ -276,6 +276,18 @@ config PWNEPTUNE
+ 	select EGFX_IRQ
+     bool "Portwell Neptune"
+ 
++config QUESTONE2
++	select USB_ARCH_HAS_EHCI
++	select AST_UART_SDMA
++	select EGFX_IRQ
++    bool "Celestica Questone2"
++
++config AS58XX_CL
++	select USB_ARCH_HAS_EHCI
++	select AST_UART_SDMA
++	select EGFX_IRQ
++    bool "Celestica AS58XX_CL"
++
+ config AST_CONSOLE_UART_BASE
+     hex "Console UART base address"
+     default 0x1e783000 if CMM
+diff --git a/arch/arm/plat-aspeed/Makefile b/arch/arm/plat-aspeed/Makefile
+index 55d9a0d..afcc25e 100644
+--- a/arch/arm/plat-aspeed/Makefile
++++ b/arch/arm/plat-aspeed/Makefile
+@@ -92,6 +92,16 @@ ifeq ($(CONFIG_PWNEPTUNE), y)
+   PLATFB = 1
+ endif
+ 
++ifeq ($(CONFIG_QUESTONE2), y)
++  obj-y += dev-uart.o dev-i2c-setup-mux.o dev-i2c-cel.o
++  PLATFB = 1
++endif
++
++ifeq ($(CONFIG_AS58XX_CL), y)
++  obj-y += dev-uart.o dev-i2c-setup-mux.o dev-i2c-cel.o
++  PLATFB = 1
++endif
++
+ ifeq ($(PLATFB), 1)
+   obj-y += dev-spi-fb.o dev-i2c-common.o
+ else
+diff --git a/arch/arm/plat-aspeed/dev-eth.c b/arch/arm/plat-aspeed/dev-eth.c
+index 7e28d00..071abc7 100644
+--- a/arch/arm/plat-aspeed/dev-eth.c
++++ b/arch/arm/plat-aspeed/dev-eth.c
+@@ -45,7 +45,8 @@
+ 	defined(CONFIG_FBTTN) || defined(CONFIG_FBY2) || \
+ 	defined(CONFIG_YOSEMITE) || defined(CONFIG_MINIPACK) || \
+ 	defined(CONFIG_MINILAKETB) || defined(CONFIG_YAMP) || \
+-	defined(CONFIG_GALAXY100)
++	defined(CONFIG_GALAXY100) || defined(CONFIG_QUESTONE2) || \
++	defined(CONFIG_AS58XX_CL)
+ #define DRVNAME "ftgmac100"
+ #else
+ #define DRVNAME "ast_gmac"
+diff --git a/arch/arm/plat-aspeed/dev-i2c-cel.c b/arch/arm/plat-aspeed/dev-i2c-cel.c
+new file mode 100644
+index 0000000..57f95ef
+--- /dev/null
++++ b/arch/arm/plat-aspeed/dev-i2c-cel.c
+@@ -0,0 +1,50 @@
++/*
++ * dev-i2c-cel.c - i2c device definition for Celestical Project
++ *
++ * Copyright 2014-present Facebook. All Rights Reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/platform_device.h>
++
++#include <plat/devs.h>
++#include <plat/ast_i2c.h>
++#if defined(CONFIG_QUESTONE2)
++pca954x_info_st dev_i2c_pca954x_info[] = {
++  {-1, 8, 0x77},		/* 0 */
++};
++#elif defined(CONFIG_AS58XX_CL)
++pca954x_info_st dev_i2c_pca954x_info[] = {
++  {-1, 2, 0x70},		/* 0 */
++  {-1, 4, 0x70},		/* 0 */
++  {-1, 6, 0x70},		/* 0 */
++  {-1, 8, 0x77},		/* 0 */
++};
++#else
++pca954x_info_st dev_i2c_pca954x_info[] = {
++};
++#endif
++const int size_dev_i2c_pca954x_info =
++    sizeof(dev_i2c_pca954x_info) / sizeof(dev_i2c_pca954x_info[0]);
++
++extern void dev_i2c_add_pca954x(pca954x_info_st [],
++                                 const int n_dev_i2c_pca954x_info);
++
++void __init ast_add_device_i2c(void)
++{
++  ast_add_device_i2c_common();
++  dev_i2c_add_pca954x(dev_i2c_pca954x_info, size_dev_i2c_pca954x_info);
++}
+diff --git a/arch/arm/plat-aspeed/dev-sdhci.c b/arch/arm/plat-aspeed/dev-sdhci.c
+index ba5b165..d4ee398 100644
+--- a/arch/arm/plat-aspeed/dev-sdhci.c
++++ b/arch/arm/plat-aspeed/dev-sdhci.c
+@@ -30,6 +30,7 @@
+ #include <plat/devs.h>
+ #include <plat/ast_sdhci.h>
+ #include <plat/ast-scu.h>
++#include <mach/hardware.h>
+ 
+ extern void ast_sd_set_8bit_mode(u8 mode);
+ 
+@@ -109,6 +110,10 @@ void __init ast_add_device_sdhci(void)
+ #if defined CONFIG_MINIPACK || defined CONFIG_YAMP
+ 	ast_scu_multi_func_sdhc_slot(2);
+ #else
++#if defined(CONFIG_QUESTONE2) || defined(CONFIG_AS58XX_CL)
++	writel(readl((void *)(IO_ADDRESS(AST_GPIO_BASE) + 0x1e4)) | (1 << 24), (void *)(IO_ADDRESS(AST_GPIO_BASE)+ 0x1e4));
++	writel(readl((void *)(IO_ADDRESS(AST_GPIO_BASE) + 0x1e0)) | (1 << 24), (void *)(IO_ADDRESS(AST_GPIO_BASE) + 0x1e0));
++#endif
+ 	ast_scu_multi_func_sdhc_slot(3);
+ #endif
+ }
+diff --git a/arch/arm/plat-aspeed/dev-uart.c b/arch/arm/plat-aspeed/dev-uart.c
+index 78123f7..f9848e9 100644
+--- a/arch/arm/plat-aspeed/dev-uart.c
++++ b/arch/arm/plat-aspeed/dev-uart.c
+@@ -195,7 +195,7 @@ static struct plat_serial8250_port ast_uart_data[] = {
+ /* Without this, tty offset might change for others */
+ #if defined(CONFIG_YOSEMITE) || defined(CONFIG_FBTP) ||  defined(CONFIG_FBY2) || defined(CONFIG_PWNEPTUNE) || \
+     defined(CONFIG_MINIPACK) || defined(CONFIG_MINILAKETB) || \
+-    defined(CONFIG_YAMP)
++    defined(CONFIG_YAMP) || defined(CONFIG_QUESTONE2) || defined(CONFIG_AS58XX_CL)
+ 	{
+ 		.mapbase	= AST_UART2_BASE,
+ 		.irq		= IRQ_UART2,
+@@ -227,6 +227,18 @@ static struct plat_serial8250_port ast_uart_data[] = {
+ 		.flags		= UPF_IOREMAP | UPF_BOOT_AUTOCONF | UPF_SKIP_TEST,
+ 	},
+ #endif
++#if defined(CONFIG_QUESTONE2)
++#ifdef AST_UART5_BASE
++	{
++		.mapbase	= AST_UART5_BASE,
++		.irq		= IRQ_UART5,
++		.uartclk	= (24*1000000L),
++		.regshift	= 2,
++		.iotype 	= UPIO_MEM,
++		.flags		= UPF_IOREMAP | UPF_BOOT_AUTOCONF | UPF_SKIP_TEST,
++	},
++#endif
++#endif
+ #endif
+ 	{},
+ 
+@@ -434,11 +446,17 @@ iounmap(reg_base);
+ 	ast_scu_multi_func_uart(2);
+ 	ast_scu_multi_func_uart(3);
+ 	ast_scu_multi_func_uart(4);
+-#elif defined CONFIG_YAMP
++#elif defined(CONFIG_YAMP) || defined(CONFIG_AS58XX_CL)
++	ast_scu_multi_func_uart(1);
++	ast_scu_multi_func_uart(2);
++	ast_scu_multi_func_uart(3);
++	ast_scu_multi_func_uart(4);
++#elif defined(CONFIG_QUESTONE2)
+ 	ast_scu_multi_func_uart(1);
+ 	ast_scu_multi_func_uart(2);
+ 	ast_scu_multi_func_uart(3);
+ 	ast_scu_multi_func_uart(4);
++	ast_scu_multi_func_uart(6);
+ #else
+ 	ast_scu_multi_func_uart(1);
+ 	ast_scu_multi_func_uart(3);
+diff --git a/drivers/net/ethernet/faraday/ftgmac100.c b/drivers/net/ethernet/faraday/ftgmac100.c
+index fdd0787..39c62f3 100644
+--- a/drivers/net/ethernet/faraday/ftgmac100.c
++++ b/drivers/net/ethernet/faraday/ftgmac100.c
+@@ -120,6 +120,9 @@ struct ftgmac100 {
+ 		#define MEZZ_UNKNOWN    -1
+ 		#define MEZZ_MLX        0x01
+ 		#define MEZZ_BCM        0x02
++#if defined(CONFIG_QUESTONE2)
++		#define MEZZ_I210        0x03
++#endif
+ 	unsigned int  powerup_prep_host_id;
+ 	struct completion ncsi_complete;
+ 
+@@ -784,6 +787,12 @@ void Get_Version_ID (struct net_device * dev)
+     lp->NCSI_Respond.Payload_Data[34] == 0x11 && lp->NCSI_Respond.Payload_Data[35] == 0x3D) {
+     lp->mezz_type = MEZZ_BCM;
+     printk("NCSI: Mezz Vendor = Broadcom\n");
++#if defined(CONFIG_QUESTONE2)
++  } else if (lp->NCSI_Respond.Payload_Data[32] == 0x00 && lp->NCSI_Respond.Payload_Data[33] == 0x00 &&
++    lp->NCSI_Respond.Payload_Data[34] == 0x01 && lp->NCSI_Respond.Payload_Data[35] == 0x57) {
++    lp->mezz_type = MEZZ_I210;
++    printk("NCSI: Mezz Vendor = Intel\n");
++#endif
+   } else {
+     lp->mezz_type = MEZZ_UNKNOWN;
+     printk("NCSI error: Unknown Mezz Vendor!\n");
+@@ -3240,9 +3249,9 @@ static int ftgmac100_open(struct net_device *netdev)
+ #if defined(CONFIG_WEDGE) || defined(CONFIG_WEDGE100) || \
+     defined(CONFIG_CMM) || defined (CONFIG_PWNEPTUNE) || \
+     defined(CONFIG_MINIPACK) || defined (CONFIG_GALAXY100) || \
+-    defined(CONFIG_MINILAKETB)
++    defined(CONFIG_MINILAKETB) ||  defined (CONFIG_AS58XX_CL)
+ 	ftgmac100_start_hw(priv, 1000);
+-#elif defined(CONFIG_FBTP)
++#elif defined(CONFIG_FBTP) || defined(CONFIG_QUESTONE2)
+ 	ftgmac100_start_hw(priv, 100);
+ #elif defined(CONFIG_YAMP)
+ 	ftgmac100_start_hw(priv, 100);
+-- 
+2.7.4
+
