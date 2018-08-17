@@ -33,6 +33,7 @@ IMAGE_INSTALL += " \
   openbmc-gpio \
   plat-utils \
   tlv-eeprom \
+  fan-ctrl \
   "
 
 IMAGE_FEATURES += " \
