@@ -34,17 +34,80 @@
 #include <linux/ktime.h>
 #include <linux/delay.h>
 #include <linux/i2c/pmbus.h>
+
 #include "pmbus.h"
+
+#define SYSFS_READ 0
+#define SYSFS_WRITE 1
 
 #define DPS1100_OP_REG_ADDR     PMBUS_OPERATION
 #define DPS1100_OP_SHUTDOWN_CMD 0x0
 #define DPS1100_OP_POWERON_CMD  0x80
+#define DPS1100_FAN1_PWM_REG 0x3B
+#define DPS1100_FAN1_SPEED_REG 0x90
 
 
 #define DPS1100_WAIT_TIME		1000	/* uS	*/
 
-#define to_dps1100_data(x)  container_of(x, struct dps1100_data, info)
+#define TO_DPS1100_DATA(x)  container_of(x, struct dps1100_data, info)
+#define TO_PMBUS_DATA(x)  container_of(x, struct pmbus_data, hwmon_dev)
+#define TO_I2C_DEV(x)  container_of(x, struct device, driver_data)
+#define TO_I2C_SYSFS_ATTR(_attr) container_of(_attr, struct sysfs_attr_t, dev_attr)
 
+/*
+ * Index into status register array, per status register group
+ */
+#define PB_STATUS_BASE		0
+#define PB_STATUS_VOUT_BASE	(PB_STATUS_BASE + PMBUS_PAGES)
+#define PB_STATUS_IOUT_BASE	(PB_STATUS_VOUT_BASE + PMBUS_PAGES)
+#define PB_STATUS_FAN_BASE	(PB_STATUS_IOUT_BASE + PMBUS_PAGES)
+#define PB_STATUS_FAN34_BASE	(PB_STATUS_FAN_BASE + PMBUS_PAGES)
+#define PB_STATUS_TEMP_BASE	(PB_STATUS_FAN34_BASE + PMBUS_PAGES)
+#define PB_STATUS_INPUT_BASE	(PB_STATUS_TEMP_BASE + PMBUS_PAGES)
+#define PB_STATUS_VMON_BASE	(PB_STATUS_INPUT_BASE + 1)
+#define PB_NUM_STATUS_REG	(PB_STATUS_VMON_BASE + 1)
+
+
+typedef ssize_t (*i2c_dev_attr_show_fn)(struct device *dev, struct device_attribute *attr, char *buf);
+typedef ssize_t (*i2c_dev_attr_store_fn)(struct device *dev, struct device_attribute *attr, const char *buf, size_t count);
+
+#define I2C_DEV_ATTR_SHOW_DEFAULT (i2c_dev_attr_show_fn)(1)
+#define I2C_DEV_ATTR_STORE_DEFAULT (i2c_dev_attr_store_fn)(1)
+
+
+struct pmbus_data {
+	struct device *dev;
+	struct device *hwmon_dev;
+
+	u32 flags;		/* from platform data */
+
+	int exponent[PMBUS_PAGES];
+				/* linear mode: exponent for output voltages */
+
+	const struct pmbus_driver_info *info;
+
+	int max_attributes;
+	int num_attributes;
+	struct attribute_group group;
+	const struct attribute_group *groups[2];
+
+	struct pmbus_sensor *sensors;
+
+	struct mutex update_lock;
+	bool valid;
+	unsigned long last_updated;	/* in jiffies */
+
+	ktime_t access;
+
+	/*
+	 * A single status register covers multiple attributes,
+	 * so we keep them all together.
+	 */
+	u8 status[PB_NUM_STATUS_REG];
+	u8 status_register;
+
+	u8 currpage;
+};
 
 
 enum chips {
@@ -52,11 +115,50 @@ enum chips {
 	DPS1100,
 };
 
+
+struct alarm_data_t {
+	int alarm_min;
+	int alarm_max;
+};
+
+struct dps1100_alarm_data {
+	struct alarm_data_t in1; //VIN
+	struct alarm_data_t in2; //VOUT
+	struct alarm_data_t fan1;
+	struct alarm_data_t temp1;
+	struct alarm_data_t temp2;
+	struct alarm_data_t pin;
+	struct alarm_data_t pout;
+	struct alarm_data_t iin;
+	struct alarm_data_t iout;
+};
+
+struct i2c_dev_attr_t {
+  const char *name;
+  const char *help;
+  i2c_dev_attr_show_fn show;
+  i2c_dev_attr_store_fn store;
+  int reg;
+} ;
+
+
+struct sysfs_attr_t {
+	struct device_attribute dev_attr;
+	struct i2c_dev_attr_t *i2c_attr;
+};
+
 struct dps1100_data {
 	int id;
 	int shutdown_state;
+	int fan1_speed;
+	int fan1_pwm;
+	struct i2c_client *client;
+	struct dps1100_alarm_data alarm_data;
 	struct pmbus_driver_info info;
+	struct attribute_group attr_group;
+	struct sysfs_attr_t *sysfs_attr;
 };
+
 
 
 static const struct i2c_device_id dps1100_id[] = {
@@ -68,12 +170,12 @@ static const struct i2c_device_id dps1100_id[] = {
 static ssize_t dps1100_shutdown_show(struct device *dev,
         struct device_attribute *attr, char *buf)
 {
+	u8 read_val = 0;
 	struct i2c_client *client = to_i2c_client(dev);
 	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = to_dps1100_data(info);
-	int len = 0;
-	u8 read_val = 0;
+	struct dps1100_data *data = TO_DPS1100_DATA(info);
 
+	client->flags |= I2C_CLIENT_PEC;
 	read_val = pmbus_read_byte_data(client, 0, DPS1100_OP_REG_ADDR);
 	if (read_val >= 0)
 	{
@@ -81,25 +183,22 @@ static ssize_t dps1100_shutdown_show(struct device *dev,
 			data->shutdown_state = 1;
 		else
 			data->shutdown_state = 0;
-
 	}
 
-  len = sprintf(buf, "%d\n\nSet to 1 for shutdown DPS1100 PSU\n",
-		              data->shutdown_state);
-  return len;
+	return sprintf(buf, "%d\n",data->shutdown_state);
 }
 
 static int dps1100_shutdown_store(struct device *dev,
         struct device_attribute *attr, const char *buf, size_t count)
 {
-	struct i2c_client *client = to_i2c_client(dev);
-	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = to_dps1100_data(info);
-
 	u8 write_value = 0;
 	long shutdown = 0;
 	int rc = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
+	struct dps1100_data *data = TO_DPS1100_DATA(info);
 
+	client->flags |= I2C_CLIENT_PEC;
 	if (buf == NULL) {
 		return -ENXIO;
 	}
@@ -123,9 +222,333 @@ static int dps1100_shutdown_store(struct device *dev,
 	return count;
 }
 
+static ssize_t dps1100_fan1_show(struct device *dev,
+        struct device_attribute *attr, char *buf)
+{
+	int len = 0;
+	int read_val = 0;
+	struct pmbus_data *pdata = dev_get_drvdata(dev);
+	struct i2c_client *client = to_i2c_client(pdata->dev);
+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
+	struct dps1100_data *data = TO_DPS1100_DATA(info);
+
+	client->flags |= I2C_CLIENT_PEC;
+	read_val = pmbus_read_word_data(client, 0, DPS1100_FAN1_SPEED_REG);
+	if (read_val >= 0)
+	{
+		data->fan1_speed = read_val;
+	}
+
+	len = sprintf(buf, "%d\n", data->fan1_speed);
+	return len;
+}
+
+static int dps1100_fan1_store(struct device *dev,
+        struct device_attribute *attr, const char *buf, size_t count)
+{
+	int rc = 0;
+	int write_value = 0;
+	struct pmbus_data *pdata = dev_get_drvdata(dev);
+	struct i2c_client *client = to_i2c_client(pdata->dev);
+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
+	struct dps1100_data *data = TO_DPS1100_DATA(info);
+
+	client->flags |= I2C_CLIENT_PEC;
+	if (buf == NULL) {
+		return -ENXIO;
+	}
+
+	rc = kstrtol(buf, 10, &write_value);
+	if (rc != 0)	{
+		return count;
+	}
+
+	rc = pmbus_write_word_data(client, 0, DPS1100_FAN1_PWM_REG, write_value);
+	if (rc == 0) {
+		data->fan1_pwm= write_value;
+	}
+
+	return count;
+}
+
+
+static const struct i2c_dev_attr_t psu_attr_table[] = {
+	{
+		"in1_min",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"in1_max",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"in2_min",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"in2_max",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"fan1_min",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"fan1_max",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"temp1_min",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"temp1_max",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"temp2_min",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"temp2_max",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"power1_min",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"power1_max",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"power2_min",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"power2_max",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"curr1_min",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"curr1_max",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"curr2_min",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"curr2_max",
+		NULL,
+		I2C_DEV_ATTR_SHOW_DEFAULT,
+		I2C_DEV_ATTR_STORE_DEFAULT,
+		0,
+	},
+	{
+		"fan1_input",
+		NULL,
+		dps1100_fan1_show,
+		dps1100_fan1_store,
+		0,
+	},
+};
+
+
+
+static struct pmbus_platform_data platform_data = {
+	.flags = PMBUS_SKIP_STATUS_CHECK,
+};
+
+static int syffs_value_rw(int *reg, int opcode, int val)
+{
+	if(opcode == SYSFS_READ)
+		return *reg;
+	else if(opcode == SYSFS_WRITE)
+		*reg = val;
+	else
+		return -1;
+
+	return 0;
+}
+static ssize_t i2c_dev_sysfs_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int val;
+	struct sysfs_attr_t *sysfs_attr = TO_I2C_SYSFS_ATTR(attr);
+	struct i2c_dev_attr_t *dev_attr = sysfs_attr->i2c_attr;
+
+	if (!dev_attr->show) {
+		return -EOPNOTSUPP;
+	}
+
+	if (dev_attr->show != I2C_DEV_ATTR_SHOW_DEFAULT) {
+		return dev_attr->show(dev, attr, buf);
+	}
+	val = syffs_value_rw(&dev_attr->reg, SYSFS_READ, 0);
+	if (val < 0) {
+		return val;
+	}
+
+	return sprintf(buf, "%d\n", val);
+}
+
+static ssize_t i2c_dev_sysfs_store(struct device *dev,
+                                   struct device_attribute *attr,
+                                   const char *buf, size_t count)
+{
+	int val;
+	int ret;
+	struct sysfs_attr_t *sysfs_attr = TO_I2C_SYSFS_ATTR(attr);
+	struct i2c_dev_attr_t *dev_attr = sysfs_attr->i2c_attr;
+
+	if (!dev_attr->store) {
+		return -EOPNOTSUPP;
+	}
+
+	if (dev_attr->store != I2C_DEV_ATTR_STORE_DEFAULT) {
+		return dev_attr->store(dev, attr, buf, count);
+	}
+
+	/* parse the buffer */
+	if (sscanf(buf, "%i", &val) <= 0) {
+		return -EINVAL;
+	}
+	ret = syffs_value_rw(&dev_attr->reg, SYSFS_WRITE, val);
+	if (ret < 0) {
+		return ret;
+	}
+
+	return count;
+}
+
+
+static int i2c_dev_sysfs_data_clean(struct device *dev, struct dps1100_data *data)
+{
+	if (!data) {
+		return 0;
+	}
+
+	if (data->attr_group.attrs) {
+		sysfs_remove_group(&dev->kobj, &data->attr_group);
+		kfree(data->attr_group.attrs);
+	}
+	if (data->sysfs_attr) {
+		kfree(data->sysfs_attr);
+	}
+
+	return 0;
+}
+
+static int dps1100_register_sysfs(struct device *dev,
+			struct dps1100_data *data, const struct i2c_dev_attr_t *dev_attrs, int n_attrs)
+{
+	int i;
+	int ret;
+	mode_t mode;
+	struct sysfs_attr_t *cur_attr;
+	const struct i2c_dev_attr_t *cur_dev_attr;
+	struct attribute **cur_grp_attr;
+
+	data->sysfs_attr = kzalloc(sizeof(*data->sysfs_attr) * n_attrs, GFP_KERNEL);
+	data->attr_group.attrs = kzalloc(sizeof(*data->attr_group.attrs) * (n_attrs + 1), GFP_KERNEL);
+	if (!data->sysfs_attr || !data->attr_group.attrs) {
+		ret = -ENOMEM;
+		goto exit_cleanup;
+	}
+
+	cur_attr = &data->sysfs_attr[0];
+	cur_grp_attr = &data->attr_group.attrs[0];
+	cur_dev_attr = dev_attrs;
+	for(i = 0; i < n_attrs; i++, cur_attr++, cur_grp_attr++, cur_dev_attr++) {
+		mode = S_IRUGO;
+		if (cur_dev_attr->store) {
+			mode |= S_IWUSR;
+		}
+		cur_attr->dev_attr.attr.name = cur_dev_attr->name;
+		cur_attr->dev_attr.attr.mode = mode;
+		cur_attr->dev_attr.show = i2c_dev_sysfs_show;
+		cur_attr->dev_attr.store = i2c_dev_sysfs_store;
+		*cur_grp_attr = &cur_attr->dev_attr.attr;
+		cur_attr->i2c_attr = cur_dev_attr;
+	}
+
+	ret = sysfs_create_group(&dev->kobj, &data->attr_group);
+	if(ret < 0) {
+		goto exit_cleanup;
+	}
+
+	return 0;
+exit_cleanup:
+	i2c_dev_sysfs_data_clean(dev, data);
+	return ret;
+}
+
+static void dps1100_remove_sysfs(struct i2c_client *client)
+{
+	struct pmbus_data *pdata = (struct pmbus_data *)i2c_get_clientdata(client);
+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
+	struct dps1100_data *data = TO_DPS1100_DATA(info);
+
+	i2c_dev_sysfs_data_clean(pdata->hwmon_dev, data);
+	return;
+}
 
 static DEVICE_ATTR(shutdown, S_IRUGO | S_IWUSR,
-		dps1100_shutdown_show, dps1100_shutdown_store);
+		NULL, dps1100_shutdown_store);
 
 static struct attribute *shutdown_attrs[] = {
 	 &dev_attr_shutdown.attr,
@@ -135,6 +558,7 @@ static struct attribute_group control_attr_group = {
      .name = "control",
      .attrs = shutdown_attrs,
 };
+
 
 static int dps1100_register_shutdown(struct i2c_client *client,
 			const struct i2c_device_id *id)
@@ -148,10 +572,10 @@ static void dps1100_remove_shutdown(struct i2c_client *client)
 	return;
 }
 
-
 static int dps1100_remove(struct i2c_client *client)
 {
 	dps1100_remove_shutdown(client);
+	dps1100_remove_sysfs(client);
 	return pmbus_do_remove(client);
 }
 
@@ -160,9 +584,11 @@ static int dps1100_probe(struct i2c_client *client,
 {
 	int ret = 0;
 	int kind;
+	int n_attrs;
 	struct device *dev = &client->dev;
 	struct dps1100_data *data;
 	struct pmbus_driver_info *info;
+	struct pmbus_data *pdata;
 
 	if (!i2c_check_functionality(client->adapter,
 			I2C_FUNC_SMBUS_READ_WORD_DATA | I2C_FUNC_SMBUS_READ_BLOCK_DATA))
@@ -173,6 +599,8 @@ static int dps1100_probe(struct i2c_client *client,
 		return -ENOMEM;
 
 	data->shutdown_state = 0;
+	data->client = client;
+	//dev->platform_data = &platform_data;
 
 	info = &data->info;
 	info->delay = DPS1100_WAIT_TIME;
@@ -190,14 +618,29 @@ static int dps1100_probe(struct i2c_client *client,
 	info->read_byte_data = pmbus_read_byte_data;
 	info->write_byte = pmbus_write_byte;
 
+
+	ret = pmbus_do_probe(client, id, info);
+	if(ret < 0) {
+		dev_err(&client->dev, "pmbus probe error\n");
+		return -EIO;
+	}
+	pdata = (struct pmbus_data *)i2c_get_clientdata(client);
+	if(pdata) {
+		n_attrs = sizeof(psu_attr_table) / sizeof(psu_attr_table[0]);
+		ret = dps1100_register_sysfs(pdata->hwmon_dev, data, psu_attr_table, n_attrs);
+		if(ret < 0) {
+			dev_err(&client->dev, "Unsupported alarm sysfs operation\n");
+			return -EIO;
+		}
+	}
+
 	ret = dps1100_register_shutdown(client, id);
 	if(ret < 0) {
 		dev_err(&client->dev, "Unsupported shutdown operation\n");
 		return -EIO;
 	}
 
-
-	return pmbus_do_probe(client, id, info);
+	return 0;
 }
 
 
