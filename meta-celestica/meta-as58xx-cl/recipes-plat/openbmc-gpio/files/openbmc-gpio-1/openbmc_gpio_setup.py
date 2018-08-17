@@ -28,11 +28,20 @@ from soc_gpio import soc_get_register
 import openbmc_gpio
 import sys
 
+def gpio_previous_config():
+    '''
+    solve the problem for Not able to unsatisfy an AND condition
+    '''
+    reg = soc_get_register(0x90)
+    reg.read(refresh=True)
+    reg.clear_bit(2, write_through=True)
 
 def main():
     print('Setting up GPIOs ... ', end='')
     sys.stdout.flush()
     openbmc_gpio.setup_shadow()
+
+    gpio_previous_config()
 
     setup_board_gpio(soc_gpio_table, board_gpio_table_v1)
     print('Done')
