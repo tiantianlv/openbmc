@@ -28,6 +28,8 @@ SRC_URI = "file://ast-functions \
            file://board-utils.sh \
            file://power-on.sh \
            file://bcm5387.sh \
+           file://setup_sensors.sh \
+           file://power_monitor.py \
            file://fru-util \
            file://COPYING \
           "
@@ -55,14 +57,19 @@ do_install() {
   install -m 0755 bcm5387.sh ${D}${localbindir}/bcm5387.sh
   install -m 0755 wedge_power.sh ${D}${localbindir}/wedge_power.sh
   install -m 0755 board-utils.sh ${D}${localbindir}/board-utils.sh
+  install -m 755 power_monitor.py ${D}${localbindir}/power_monitor.py
   
 
   install -m 755 setup_i2c.sh ${D}${sysconfdir}/init.d/setup_i2c.sh
-  update-rc.d -r ${D} setup_i2c.sh start 60 S .
+  update-rc.d -r ${D} setup_i2c.sh start 07 S .
   install -m 755 rsyslog_config.sh ${D}${sysconfdir}/init.d/rsyslog_config.sh
   update-rc.d -r ${D} rsyslog_config.sh start 61 S .
   install -m 755 power-on.sh ${D}${sysconfdir}/init.d/power-on.sh
   update-rc.d -r ${D} power-on.sh start 85 S .
+
+  install -m 755 setup_sensors.sh ${D}${sysconfdir}/init.d/setup_sensors.sh
+  update-rc.d -r ${D} setup_sensors.sh start 100 2 3 4 5 .
+
 
   install -m 0755 fru-util ${D}${localbindir}/fru-util
 }

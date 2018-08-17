@@ -17,6 +17,7 @@ import subprocess
 import bmc_command
 
 def get_fruid_psu():
+    result = []
     fresult = []
     proc = subprocess.Popen(['/usr/local/bin/fru-util psu -a'],
                             shell=True,
@@ -29,8 +30,11 @@ def get_fruid_psu():
         data = ex.output
         err = ex.error
 
+    for edata in data.split('\n'):
+        result.append(edata)
+
     fresult = {
-                "Information": data,
+                "Information": result,
                 "Actions": [],
                 "Resources": [],
               }
@@ -52,7 +56,9 @@ def get_fruid_fan():
         except bmc_command.TimeoutError as ex:
             data = ex.output
             err = ex.error
-        result.append(data)
+
+        for edata in data.split('\n'):
+            result.append(edata)
 
     fresult = {
                 "Information": result,
@@ -63,6 +69,7 @@ def get_fruid_fan():
     return fresult
 
 def get_fruid_sys():
+    result = []
     fresult = []
     proc = subprocess.Popen(['/usr/local/bin/fru-util sys'],
                             shell=True,
@@ -75,8 +82,11 @@ def get_fruid_sys():
         data = ex.output
         err = ex.error
 
+    for edata in data.split('\n'):
+        result.append(edata)
+
     fresult = {
-                "Information": data,
+                "Information": result,
                 "Actions": [],
                 "Resources": [],
               }
