@@ -133,3 +133,8 @@ sys_led() {
 		return 1
 	fi
 }
+
+board_type() {
+	echo 'Fishbone'
+	#echo 'Phalanx'
+}

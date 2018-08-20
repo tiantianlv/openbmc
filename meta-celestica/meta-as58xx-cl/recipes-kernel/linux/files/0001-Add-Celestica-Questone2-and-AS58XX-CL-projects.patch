@@ -1,17 +1,17 @@
-From b79e793273576854fed1efa01ec485811b543551 Mon Sep 17 00:00:00 2001
+From 3f3f3b444b3b7debdcdeaf8d74273a52165d060d Mon Sep 17 00:00:00 2001
 From: zmzhan <mzhan@celestica.com>
-Date: Tue, 7 Aug 2018 13:42:04 +0800
+Date: Mon, 20 Aug 2018 14:15:06 +0800
 Subject: [PATCH] Add Celestica Questone2 and AS58XX-CL projects
 
 ---
  arch/arm/mach-aspeed/Kconfig             | 12 ++++++++
  arch/arm/plat-aspeed/Makefile            | 10 +++++++
  arch/arm/plat-aspeed/dev-eth.c           |  3 +-
- arch/arm/plat-aspeed/dev-i2c-cel.c       | 50 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-aspeed/dev-i2c-cel.c       | 49 ++++++++++++++++++++++++++++++++
  arch/arm/plat-aspeed/dev-sdhci.c         |  5 ++++
  arch/arm/plat-aspeed/dev-uart.c          | 22 ++++++++++++--
  drivers/net/ethernet/faraday/ftgmac100.c | 13 +++++++--
- 7 files changed, 110 insertions(+), 5 deletions(-)
+ 7 files changed, 109 insertions(+), 5 deletions(-)
  create mode 100644 arch/arm/plat-aspeed/dev-i2c-cel.c
 
 diff --git a/arch/arm/mach-aspeed/Kconfig b/arch/arm/mach-aspeed/Kconfig
@@ -74,10 +74,10 @@ index 7e28d00..071abc7 100644
  #define DRVNAME "ast_gmac"
 diff --git a/arch/arm/plat-aspeed/dev-i2c-cel.c b/arch/arm/plat-aspeed/dev-i2c-cel.c
 new file mode 100644
-index 0000000..57f95ef
+index 0000000..6e9a705
 --- /dev/null
 +++ b/arch/arm/plat-aspeed/dev-i2c-cel.c
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,49 @@
 +/*
 + * dev-i2c-cel.c - i2c device definition for Celestical Project
 + *
@@ -108,10 +108,9 @@ index 0000000..57f95ef
 +};
 +#elif defined(CONFIG_AS58XX_CL)
 +pca954x_info_st dev_i2c_pca954x_info[] = {
-+  {-1, 2, 0x70},		/* 0 */
-+  {-1, 4, 0x70},		/* 0 */
-+  {-1, 6, 0x70},		/* 0 */
-+  {-1, 8, 0x77},		/* 0 */
++  {-1, 4, 0x77},		/* 0 */
++  {-1, 6, 0x77},		/* 1 */
++  {-1, 8, 0x77},		/* 2 */
 +};
 +#else
 +pca954x_info_st dev_i2c_pca954x_info[] = {
