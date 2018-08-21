@@ -18,17 +18,40 @@
 # Boston, MA 02110-1301 USA
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
+. /usr/local/bin/openbmc-utils.sh
 
 command=(
 "psu psu_fru"
 "sys sys_fru"
 "fan fan_fru"
+"bmc bmc_fru"
+"fb fb_fru"
+"lb lc_fru"
 )
 
-EEPROM_LINK_FILE="/tmp/eeprom"
-SYSEEPROM_I2C_BUS=2
-SYSEEPROM_I2C_ADDR=53
+board_type=$(board_type)
 
+EEPROM_LINK_FILE="/tmp/eeprom"
+
+#System EEPROM
+SYSEEPROM_I2C_BUS=2
+SYSEEPROM_I2C_ADDR=57
+
+#BMC EEPROM
+BMCEEPROM_I2C_BUS=2
+BMCEEPROM_I2C_ADDR=53
+
+#FAN EEPROM
+#FAN Board EEPROM
+FBEEPROM_I2C_BUS=39
+FBEEPROM_I2C_ADDR=56
+
+#FAN Module
+if [ "$board_type" = "Phalanx" ]; then
+FAN_EEPROM_MAX=5
+FAN5_EEPROM_I2C_BUS=36
+FAN5_EEPROM_I2C_ADDR=50
+fi
 FAN_EEPROM_MAX=4
 FAN1_EEPROM_I2C_BUS=16
 FAN1_EEPROM_I2C_ADDR=50
@@ -39,6 +62,15 @@ FAN3_EEPROM_I2C_ADDR=50
 FAN4_EEPROM_I2C_BUS=20
 FAN4_EEPROM_I2C_ADDR=50
 
+#For Phalanx
+LC_EEPROM_MAX=2
+LC1_EEPROM_I2C_BUS=40
+LC1_EEPROM_I2C_ADDR=52
+LC2_EEPROM_I2C_BUS=41
+LC2_EEPROM_I2C_ADDR=54
+
+
+############################################
 read_info() {
 	echo `cat /sys/bus/i2c/devices/i2c-${1}/${1}-00${2}/${3} | head -n 1`
 }
@@ -152,6 +184,24 @@ sys_fru() {
 	syseeprom $@
 }
 
+bmc_fru() {
+	echo "BMC FRU:"
+	if [ -L ${EEPROM_LINK_FILE} ]; then
+		rm -rf ${EEPROM_LINK_FILE}
+	fi
+	ln -s /sys/bus/i2c/devices/i2c-${BMCEEPROM_I2C_BUS}/${BMCEEPROM_I2C_BUS}-00${BMCEEPROM_I2C_ADDR}/eeprom  ${EEPROM_LINK_FILE}
+	syseeprom $@
+}
+
+fb_fru() {
+	echo "FAN Board FRU:"
+	if [ -L ${EEPROM_LINK_FILE} ]; then
+		rm -rf ${EEPROM_LINK_FILE}
+	fi
+	ln -s /sys/bus/i2c/devices/i2c-${FBEEPROM_I2C_BUS}/${FBEEPROM_I2C_BUS}-00${FBEEPROM_I2C_ADDR}/eeprom  ${EEPROM_LINK_FILE}
+	syseeprom $@
+}
+
 fan_present() {
 	((val=$(read_info 0 0d fan${i}_present)))
 	if [ $val -eq 0 ]; then
@@ -173,6 +223,28 @@ fan_fru() {
 	fi
 	i2c_bus=$((FAN${i}_EEPROM_I2C_BUS))
 	i2c_addr=$((FAN${i}_EEPROM_I2C_ADDR))
+	if [ -L ${EEPROM_LINK_FILE} ]; then
+		rm -rf ${EEPROM_LINK_FILE}
+	fi
+	ln -s /sys/bus/i2c/devices/i2c-${i2c_bus}/${i2c_bus}-00${i2c_addr}/eeprom  ${EEPROM_LINK_FILE}
+	shift
+	syseeprom $@
+
+}
+
+lc_fru() {
+	if [ "$board_type" != "Phalanx" ]; then
+		echo "Warning: Board $board_type does not support the function!"
+		exit 0
+	fi
+	if [ $# -lt 1 ] || [ $1 -lt 0 ] || [ $1 -gt ${LC_EEPROM_MAX} ]; then
+		fan_usage
+		return 1
+	fi
+	i=$1
+	echo "LC${i} FRU:"
+	i2c_bus=$((LC${i}_EEPROM_I2C_BUS))
+	i2c_addr=$((LC${i}_EEPROM_I2C_ADDR))
 	if [ -L ${EEPROM_LINK_FILE} ]; then
 		rm -rf ${EEPROM_LINK_FILE}
 	fi

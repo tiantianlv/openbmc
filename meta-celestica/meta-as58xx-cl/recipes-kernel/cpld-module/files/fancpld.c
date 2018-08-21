@@ -333,7 +333,60 @@ static const i2c_dev_attr_st fancpld_attr_table[] = {
 	  NULL,
 	  0x56, 1, 1,
 	},
-	
+	{
+	  "fan9_input",
+	  NULL,
+	  fan_rpm_show,
+	  NULL,
+	  0x60, 0, 8,
+	},
+	{
+	  "fan10_input",
+	  NULL,
+	  fan_rpm_show,
+	  NULL,
+	  0x61, 0, 8,
+	},
+	{
+	  "fan5_pwm",
+	  NULL,
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  I2C_DEV_ATTR_STORE_DEFAULT,
+	  0x62, 0, 8,
+	},
+	{
+	  "fan5_led",
+	  "0x1: green\n"
+	  "0x2: red\n"
+	  "0x3: off",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  I2C_DEV_ATTR_STORE_DEFAULT,
+	  0x64, 0, 2,
+	},
+	{
+	  "fan5_eeprom_wp",
+	  "0x0: protect\n"
+	  "0x1: not protect",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  I2C_DEV_ATTR_STORE_DEFAULT,
+	  0x65, 0, 1,
+	},
+	{
+	  "fan5_present",
+	  "0x0: present\n"
+	  "0x1: absent",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  NULL,
+	  0x66, 0, 1,
+	},
+	{
+	  "fan5_dir",
+	  "0x0: F2B\n"
+	  "0x1: B2F",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  NULL,
+	  0x66, 1, 1,
+	},
 
 };
 

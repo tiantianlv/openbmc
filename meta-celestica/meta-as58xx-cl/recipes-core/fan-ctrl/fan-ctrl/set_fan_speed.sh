@@ -17,11 +17,23 @@
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 #
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
+
+. /usr/local/bin/openbmc-utils.sh
+
+board_type=$(board_type)
+if [ "$board_type" = "Phalanx" ]; then
+    FAN_TOTAL=5
+else
+    FAN_TOTAL=4
+fi
+
 usage() {
-    echo "Usage: $0 <PERCENT (0..100)> <Fan Unit (1..4)> " >&2
+    echo "Usage: $0 <PERCENT (0..100)> <Fan Unit (1..$FAN_TOTAL)> " >&2
 }
 
-FAN_DIR=/sys/bus/i2c/devices/i2c-0/0-000d/
+FAN_DIR=/sys/bus/i2c/devices/i2c-8/8-000d/
 
 set -e
 
@@ -31,7 +43,11 @@ if [ "$#" -ne 2 ] && [ "$#" -ne 1 ]; then
 fi
 
 if [ "$#" -eq 1 ]; then
-    FANS="1 2 3 4"
+	if [ "$board_type" = "Phalanx" ]; then
+		FANS="1 2 3 4 5"
+	else
+    	FANS="1 2 3 4"
+	fi
 else
     FANS="$2"
 fi
