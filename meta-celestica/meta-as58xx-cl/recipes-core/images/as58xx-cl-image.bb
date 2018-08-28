@@ -17,6 +17,7 @@ IMAGE_INSTALL += " \
   bcm5396-util \
   bitbang \
   cpldupdate \
+  libcpldupdate-dll-gpio \
   flashrom \
   libpal \
   ipmid \
@@ -34,6 +35,7 @@ IMAGE_INSTALL += " \
   plat-utils \
   tlv-eeprom \
   fan-ctrl \
+  peci-util \
   "
 
 IMAGE_FEATURES += " \

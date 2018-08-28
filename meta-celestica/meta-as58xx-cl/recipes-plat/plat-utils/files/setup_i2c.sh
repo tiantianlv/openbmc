@@ -90,7 +90,6 @@ i2c_device_add 25 0x59 dps1100 #PSU2 PMBUS
 #bus 32 channel 0
 i2c_device_add 32 0x50 24c64 #Fan EEPROM
 #bus 33 channel 1
-i2c_device_add 33 0x50 24c64
 #bus 34 channel 2
 i2c_device_add 34 0x50 24c64
 #bus 35 channel 3
@@ -98,16 +97,16 @@ i2c_device_add 35 0x50 24c64
 #bus 36 channel 4
 #bus 37 channel 5
 #bus 38 channel 6
+i2c_device_add 38 0x50 24c64
 #bus 39 channel 7
 i2c_device_add 39 0x56 24c64 #Fan Board EEPROM
 i2c_device_add 39 0x48 tmp75
+i2c_device_add 39 0x49 tmp75
 
 #For Phalanx Board
 if [ "$board_type" = "Phalanx" ]; then
 	#bus 36 channel 4 For Fan 5
 	i2c_device_add 36 0x50 24c64
-	#bus 39 channel 7 For Temp
-	i2c_device_add 39 0x49 tmp75
 
 
 	# Bus 16 for i2c-4 PCA9548

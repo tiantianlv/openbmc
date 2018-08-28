@@ -12,8 +12,9 @@
 
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
-SRC_URI += "file://lsb_release \
+SRC_URI += " \
       file://disable_watchdog.sh \
+      file://boot_info.sh \
       file://create_vlan_intf \
       "
 
@@ -21,13 +22,17 @@ RDEPENDS_${PN} += " python3 bash"
 DEPENDS_append += " update-rc.d-native"
 
 do_install_append() {
+    localbindir="/usr/local/bin"
 	pkgdir="/usr/local/fbpackages/utils"
+    install -d ${D}${localbindir}
 	install -d ${D}${pkgdir}
 	ln -s "/usr/local/bin/openbmc-utils.sh" "${D}${pkgdir}/ast-functions"
 
 
     install -m 0755 ${WORKDIR}/disable_watchdog.sh ${D}${sysconfdir}/init.d/disable_watchdog.sh
     update-rc.d -r ${D} disable_watchdog.sh start 99 2 3 4 5 .
+
+	install -m 0755 boot_info.sh ${D}${localbindir}/boot_info.sh
 
 	# create VLAN intf automatically
     install -d ${D}/${sysconfdir}/network/if-up.d

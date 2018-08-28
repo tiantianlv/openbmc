@@ -6,6 +6,7 @@ PWR_BTN_SYSFS="${SYSCPLD_SYSFS_DIR}/cb_pwr_btn_n"
 PWR_RESET_SYSFS="${SYSCPLD_SYSFS_DIR}/come_rst_n"
 SYSLED_CTRL_SYSFS="${SYSCPLD_SYSFS_DIR}/sysled_ctrl"
 SYSLED_SEL_SYSFS="${SYSCPLD_SYSFS_DIR}/sysled_select"
+SYSLED_SOL_CTRL_SYSFS="${SYSCPLD_SYSFS_DIR}/sol_control"
 
 
 wedge_power() {
@@ -137,4 +138,12 @@ sys_led() {
 board_type() {
 	echo 'Fishbone'
 	#echo 'Phalanx'
+}
+
+sol_ctrl() {
+	if [ "$1" = "BMC" ]; then
+		echo 0 > $SYSLED_SOL_CTRL_SYSFS
+	elif [ "$1" = "COME" ]; then
+		echo 1 > $SYSLED_SOL_CTRL_SYSFS
+	fi
 }

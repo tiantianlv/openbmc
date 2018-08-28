@@ -17,6 +17,9 @@
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 #
+
+. /usr/local/bin/openbmc-utils.sh
+
 TTY=/dev/ttyS1
 
 mTerm_server_running() {
@@ -46,6 +49,7 @@ start_sol_session() {
 # otherwise fallback to the old method
 
 if mTerm_server_running; then
+  $sol_ctrl BMC
   exec /usr/local/bin/mTerm_client as58xx-cl
 else
   start_sol_session
