@@ -49,7 +49,7 @@ start_sol_session() {
 # otherwise fallback to the old method
 
 if mTerm_server_running; then
-  $sol_ctrl BMC
+  sol_ctrl BMC
   exec /usr/local/bin/mTerm_client as58xx-cl
 else
   start_sol_session
