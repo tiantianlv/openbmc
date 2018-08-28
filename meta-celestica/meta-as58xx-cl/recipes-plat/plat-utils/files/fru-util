@@ -21,6 +21,7 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 . /usr/local/bin/openbmc-utils.sh
 
 command=(
+"status fru_status"
 "psu psu_fru"
 "sys sys_fru"
 "fan fan_fru"
@@ -88,7 +89,7 @@ psu_present() {
 	fi
 }
 
-psu_status() {
+psu_power() {
 	if [ $1 -eq 1  ]; then
 		((val=$(read_info 0 0d psu_l_status)))
 	else
@@ -101,21 +102,26 @@ psu_status() {
 	fi
 }
 
+psu_acok() {
+    if [ $1 -eq 1  ]; then
+        ((val=$(read_info 0 0d psu_l_ac_status)))
+    else
+        ((val=$(read_info 0 0d psu_r_ac_status)))
+    fi
+    if [ $val -eq 0 ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
 psu_info() {
 	if [ "$1" == "1" ]; then
 		echo "PSU1 FRU:"
 		$(psu_present 1)
-		if [ $? -eq 1 ]; then
-			echo "Present: present"
-		else
-			echo "Present: not present"
-			return 1
-		fi
-		$(psu_status 1)
 		if [ $? -eq 0 ]; then
-			echo "Status: OK"
-		else
-			echo "Status: not OK"
+			echo "Present: Absent"
+			return 1
 		fi
 		echo "MFR ID:  $(read_info 6 50 mfr_id)"
 		echo "Product Name: $(read_info 6 50 mfr_name)"
@@ -124,17 +130,9 @@ psu_info() {
 	elif [ "$1" == "2" ]; then
 		echo -e "\nPSU2 FRU:"
 		$(psu_present 2)
-		if [ $? -eq 1 ]; then
-			echo "Present: present"
-		else
-			echo "Present: not present"
-			return 1
-		fi
-		$(psu_status 2)
 		if [ $? -eq 0 ]; then
-			echo "Status: OK"
-		else
-			echo "Status: not OK"
+			echo "Present: Absent"
+			return 1
 		fi
 		echo "MFR ID:  $(read_info 6 51 mfr_id)"
 		echo "Product Name: $(read_info 6 51 mfr_name)"
@@ -205,9 +203,9 @@ fb_fru() {
 fan_present() {
 	((val=$(read_info 0 0d fan${i}_present)))
 	if [ $val -eq 0 ]; then
-		echo "Yes"
+		return 1
 	else
-		echo "No"
+		return 0
 	fi
 }
 
@@ -254,6 +252,57 @@ lc_fru() {
 
 }
 
+show_psu_status() {
+	$(psu_present $1)
+	if [ $? -eq 1 ]; then
+        echo "Present: Present"
+    else
+        echo "Present: Absent"
+    fi
+
+	$(psu_power $1)
+    if [ $? -eq 0 ]; then
+        echo "Power Status: OK"
+    else
+        echo "Power Status: Not OK"
+    fi
+
+	$(psu_acok $1)
+    if [ $? -eq 0 ]; then
+        echo "AC Status: OK"
+    else
+        echo "AC Status: Not OK"
+    fi
+}
+
+fru_status() {
+	all=0
+	if [ $# -eq 0 ]; then
+		all=1
+	fi
+	if [ "$1" = "psu" ] || [ $all -eq 1 ]; then
+		echo "PSU1:"
+		show_psu_status 1
+		echo -e "\nPSU2:"
+		show_psu_status 2
+		echo ""
+	fi
+
+	if [ "$1" = "fan" ] || [ $all -eq 1 ]; then
+		for i in $( seq 1 $FAN_EEPROM_MAX )
+		do
+			echo -n "Fan$i: "
+			$(fan_present $i)
+			if [ $? -eq 1 ]; then
+				echo "Present"
+			else
+				echo "Absent"
+			fi
+		done
+	fi
+}
+
+##############################################
 if [ $# -lt 1 ]; then
 	echo "Error: parameter must >= 1"
 	echo "Support commands: "
