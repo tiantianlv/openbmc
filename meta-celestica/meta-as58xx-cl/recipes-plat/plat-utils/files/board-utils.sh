@@ -147,3 +147,24 @@ sol_ctrl() {
 		echo 1 > $SYSLED_SOL_CTRL_SYSFS
 	fi
 }
+
+boot_from() {
+	if [ $# -lt 1 ]; then
+		echo ""
+		echo "Please indicate master or slave"
+		return 1
+	fi
+
+	if [ "$1" = "master" ]; then
+		devmem 0x1e785024 32 0x00989680
+		devmem 0x1e785028 32 0x4755
+		devmem 0x1e78502c 32 0x00000013
+	elif [ "$1" = "slave" ]; then
+		devmem 0x1e785024 32 0x00989680
+		devmem 0x1e785028 32 0x4755
+		devmem 0x1e78502c 32 0x00000093
+	else
+		echo "Error parameter!"
+		return 1
+	fi
+}
