@@ -1,18 +1,18 @@
-From ea3ce8ef1a201f9f6440dd6b764f260bbb2743b4 Mon Sep 17 00:00:00 2001
+From 9794ed0602ad2bb4430b45b8a09d60746c178fa7 Mon Sep 17 00:00:00 2001
 From: zmzhan <mzhan@celestica.com>
-Date: Tue, 28 Aug 2018 09:40:40 +0800
+Date: Wed, 29 Aug 2018 18:20:21 +0800
 Subject: [PATCH] Add Celestica Questone2 and AS58XX-CL projects
 
 ---
- arch/arm/mach-aspeed/Kconfig             | 12 ++++++++
- arch/arm/plat-aspeed/Makefile            | 10 +++++++
+ arch/arm/mach-aspeed/Kconfig             | 12 +++++++
+ arch/arm/plat-aspeed/Makefile            | 10 ++++++
  arch/arm/plat-aspeed/dev-eth.c           |  3 +-
- arch/arm/plat-aspeed/dev-i2c-cel.c       | 49 +++++++++++++++++++++++++++++++
- arch/arm/plat-aspeed/dev-sdhci.c         |  5 ++++
- arch/arm/plat-aspeed/dev-spi-fb.c        | 50 ++++++++++++++++++++++++++++++++
- arch/arm/plat-aspeed/dev-uart.c          | 22 ++++++++++++--
- drivers/net/ethernet/faraday/ftgmac100.c | 13 +++++++--
- 8 files changed, 159 insertions(+), 5 deletions(-)
+ arch/arm/plat-aspeed/dev-i2c-cel.c       | 49 ++++++++++++++++++++++++++++
+ arch/arm/plat-aspeed/dev-sdhci.c         |  5 +++
+ arch/arm/plat-aspeed/dev-spi-fb.c        | 56 ++++++++++++++++++++++++++++++--
+ arch/arm/plat-aspeed/dev-uart.c          | 22 +++++++++++--
+ drivers/net/ethernet/faraday/ftgmac100.c | 13 ++++++--
+ 8 files changed, 162 insertions(+), 8 deletions(-)
  create mode 100644 arch/arm/plat-aspeed/dev-i2c-cel.c
 
 diff --git a/arch/arm/mach-aspeed/Kconfig b/arch/arm/mach-aspeed/Kconfig
@@ -152,7 +152,7 @@ index ba5b165..d4ee398 100644
  #endif
  }
 diff --git a/arch/arm/plat-aspeed/dev-spi-fb.c b/arch/arm/plat-aspeed/dev-spi-fb.c
-index c155199..fc1b8fd 100644
+index c155199..4aabe01 100644
 --- a/arch/arm/plat-aspeed/dev-spi-fb.c
 +++ b/arch/arm/plat-aspeed/dev-spi-fb.c
 @@ -230,6 +230,38 @@ static struct mtd_partition ast_legacy_partitions[] = {
@@ -226,6 +226,28 @@ index c155199..fc1b8fd 100644
  };
  
  #ifdef CONFIG_MINIPACK
+@@ -374,10 +424,10 @@ static struct spi_eeprom m95m02 = {
+ #endif
+ 
+ #if defined(CONFIG_FBTP)  || defined(CONFIG_LIGHTNING) || defined (CONFIG_WEDGE100) || defined (CONFIG_PWNEPTUNE) || \
+-    defined(CONFIG_MINIPACK)
++    defined(CONFIG_MINIPACK) || defined(CONFIG_QUESTONE2) || defined(CONFIG_AS58XX_CL)
+ static struct spi_board_info ast_spi0_devices[] = {
+     {
+-#if defined(CONFIG_WEDGE100) || defined(CONFIG_MINIPACK)
++#if defined(CONFIG_WEDGE100) || defined(CONFIG_MINIPACK) || defined(CONFIG_QUESTONE2) || defined(CONFIG_AS58XX_CL)
+         .modalias           = "spidev",
+         .chip_select        = 0,
+         .max_speed_hz       = 33 * 1000 * 1000,
+@@ -445,7 +495,7 @@ void __init ast_add_device_spi(void)
+   } else {
+     spi_register_board_info(ast_single_flash_fmc_devices, ARRAY_SIZE(ast_single_flash_fmc_devices));
+   }
+-#if defined(CONFIG_FBTP) || defined(CONFIG_LIGHTNING) || defined(CONFIG_WEDGE100) || defined(CONFIG_PWNEPTUNE)
++#if defined(CONFIG_FBTP) || defined(CONFIG_LIGHTNING) || defined(CONFIG_WEDGE100) || defined(CONFIG_PWNEPTUNE) || defined(CONFIG_QUESTONE2) || defined(CONFIG_AS58XX_CL)
+ 	platform_device_register(&ast_spi0_device);
+ 	spi_register_board_info(ast_spi0_devices, ARRAY_SIZE(ast_spi0_devices));
+ #elif defined(CONFIG_MINIPACK)
 diff --git a/arch/arm/plat-aspeed/dev-uart.c b/arch/arm/plat-aspeed/dev-uart.c
 index 78123f7..f9848e9 100644
 --- a/arch/arm/plat-aspeed/dev-uart.c

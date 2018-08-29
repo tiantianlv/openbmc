@@ -201,7 +201,7 @@ fb_fru() {
 }
 
 fan_present() {
-	((val=$(read_info 0 0d fan${i}_present)))
+	((val=$(read_info 8 0d fan${i}_present)))
 	if [ $val -eq 0 ]; then
 		return 1
 	else
