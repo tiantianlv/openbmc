@@ -41,26 +41,26 @@ set_value 4 43 in0_max 1050
 set_value 4 43 curr1_min 0
 set_value 4 43 curr1_max 3000
 
-set_value 17 47 in0_min 1164
-set_value 17 47 in0_max 1236
+set_value 17 47 in0_min 1160
+set_value 17 47 in0_max 1240
 set_value 17 47 curr1_min 0
 set_value 17 47 curr1_max 1700
 
 #IR38062
-set_value 4 49 in0_min 3135
-set_value 4 49 in0_max 3465
+set_value 4 49 in0_min 3130
+set_value 4 49 in0_max 3470
 set_value 4 49 curr1_min 0
 set_value 4 49 curr1_max 10000
 
 #IR3595
-set_value 16 12 in0_min 735
+set_value 16 12 in0_min 730
 set_value 16 12 in0_max 1020
 set_value 16 12 curr1_min 0
 set_value 16 12 curr1_max 211700
 
 #IR3584
-set_value 18 70 in0_min 3135
-set_value 18 70 in0_max 3465
+set_value 18 70 in0_min 3130
+set_value 18 70 in0_max 3470
 set_value 18 70 curr1_min 0
 set_value 18 70 curr1_max 31000
 

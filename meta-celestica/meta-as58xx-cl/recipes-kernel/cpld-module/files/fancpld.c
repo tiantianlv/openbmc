@@ -94,7 +94,7 @@ static int alarm_value_rw(const char *name, int opcode, int value)
 	} else if(strcmp(name, "fan6_min") == 0) {
 		p = &fancpld_alarm_data.fan6.alarm_min;
 	} else if(strcmp(name, "fan6_max") == 0) {
-		p = &fancpld_alarm_data.fan7.alarm_max;
+		p = &fancpld_alarm_data.fan6.alarm_max;
 	} else if(strcmp(name, "fan7_min") == 0) {
 		p = &fancpld_alarm_data.fan7.alarm_min;
 	} else if(strcmp(name, "fan7_max") == 0) {
