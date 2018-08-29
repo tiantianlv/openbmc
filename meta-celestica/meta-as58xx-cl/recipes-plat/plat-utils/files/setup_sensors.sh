@@ -41,33 +41,58 @@ set_value 4 43 in0_max 1050
 set_value 4 43 curr1_min 0
 set_value 4 43 curr1_max 3000
 
-set_value 17 47 in0_min 1164
-set_value 17 47 in0_max 1236
+set_value 17 47 in0_min 1160
+set_value 17 47 in0_max 1240
 set_value 17 47 curr1_min 0
 set_value 17 47 curr1_max 1700
 
 #IR38062
-set_value 4 49 in0_min 3135
-set_value 4 49 in0_max 3465
+set_value 4 49 in0_min 3130
+set_value 4 49 in0_max 3470
 set_value 4 49 curr1_min 0
 set_value 4 49 curr1_max 10000
 
 #IR3595
-set_value 16 12 in0_min 735
+set_value 16 12 in0_min 730
 set_value 16 12 in0_max 1020
 set_value 16 12 curr1_min 0
 set_value 16 12 curr1_max 211700
 
 #IR3584
-set_value 18 70 in0_min 3135
-set_value 18 70 in0_max 3465
+set_value 18 70 in0_min 3130
+set_value 18 70 in0_max 3470
 set_value 18 70 curr1_min 0
 set_value 18 70 curr1_max 31000
+
+#Fan1-4
+set_value 8 0d fan1_min 1000
+set_value 8 0d fan1_max 26000
+set_value 8 0d fan2_min 1000
+set_value 8 0d fan2_max 23000
+set_value 8 0d fan3_min 1000
+set_value 8 0d fan3_max 26000
+set_value 8 0d fan4_min 1000
+set_value 8 0d fan4_max 23000
+set_value 8 0d fan5_min 1000
+set_value 8 0d fan5_max 26000
+set_value 8 0d fan6_min 1000
+set_value 8 0d fan6_max 23000
+set_value 8 0d fan7_min 1000
+set_value 8 0d fan7_max 26000
+set_value 8 0d fan8_min 1000
+set_value 8 0d fan8_max 23000
 
 #PSU1
 #add it to sensors.config
 #PSU2
 #add it to sensors.config
+
+if [ "$board_type" = "Phalanx" ]; then
+set_value 8 0d fan9_min 1000
+set_value 8 0d fan9_max 26000
+set_value 8 0d fan10_min 1000
+set_value 8 0d fan10_max 23000
+fi
 
 
 # run sensors.config set command

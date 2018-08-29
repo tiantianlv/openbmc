@@ -30,6 +30,10 @@
 
 #define DEBUG
 
+#define FANCPLD_ALARM_NODE 0xff /*just for flag using*/
+#define SYSFS_READ 0
+#define SYSFS_WRITE 1
+
 #ifdef DEBUG
 #define FANCPLD_DEBUG(fmt, ...) do {                   \
   printk(KERN_DEBUG "%s:%d " fmt "\n",            \
@@ -40,6 +44,87 @@
 
 #define FANCPLD_DEBUG(fmt, ...)
 #endif
+
+struct alarm_data_t {
+	int alarm_min;
+	int alarm_max;
+};
+
+struct ir358x_alarm_data {
+	struct alarm_data_t fan1;
+	struct alarm_data_t fan2;
+	struct alarm_data_t fan3;
+	struct alarm_data_t fan4;
+	struct alarm_data_t fan5;
+	struct alarm_data_t fan6;
+	struct alarm_data_t fan7;
+	struct alarm_data_t fan8;
+	struct alarm_data_t fan9;
+	struct alarm_data_t fan10;
+};
+
+static i2c_dev_data_st fancpld_data;
+struct ir358x_alarm_data fancpld_alarm_data;
+
+
+static int alarm_value_rw(const char *name, int opcode, int value)
+{
+	int *p = NULL;
+
+	if(strcmp(name, "fan1_min") == 0) {
+		p = &fancpld_alarm_data.fan1.alarm_min;
+	} else if(strcmp(name, "fan1_max") == 0) {
+		p = &fancpld_alarm_data.fan1.alarm_max;
+	} else if(strcmp(name, "fan2_min") == 0) {
+		p = &fancpld_alarm_data.fan2.alarm_min;
+	} else if(strcmp(name, "fan2_max") == 0) {
+		p = &fancpld_alarm_data.fan2.alarm_max;
+	} else if(strcmp(name, "fan3_min") == 0) {
+		p = &fancpld_alarm_data.fan3.alarm_min;
+	} else if(strcmp(name, "fan3_max") == 0) {
+		p = &fancpld_alarm_data.fan3.alarm_max;
+	} else if(strcmp(name, "fan4_min") == 0) {
+		p = &fancpld_alarm_data.fan4.alarm_min;
+	} else if(strcmp(name, "fan4_max") == 0) {
+		p = &fancpld_alarm_data.fan4.alarm_max;
+	} else if(strcmp(name, "fan5_min") == 0) {
+		p = &fancpld_alarm_data.fan5.alarm_min;
+	} else if(strcmp(name, "fan5_max") == 0) {
+		p = &fancpld_alarm_data.fan5.alarm_max;
+	} else if(strcmp(name, "fan6_min") == 0) {
+		p = &fancpld_alarm_data.fan6.alarm_min;
+	} else if(strcmp(name, "fan6_max") == 0) {
+		p = &fancpld_alarm_data.fan6.alarm_max;
+	} else if(strcmp(name, "fan7_min") == 0) {
+		p = &fancpld_alarm_data.fan7.alarm_min;
+	} else if(strcmp(name, "fan7_max") == 0) {
+		p = &fancpld_alarm_data.fan7.alarm_max;
+	} else if(strcmp(name, "fan8_min") == 0) {
+		p = &fancpld_alarm_data.fan8.alarm_min;
+	} else if(strcmp(name, "fan8_max") == 0) {
+		p = &fancpld_alarm_data.fan8.alarm_max;
+	} else if(strcmp(name, "fan9_min") == 0) {
+		p = &fancpld_alarm_data.fan9.alarm_min;
+	} else if(strcmp(name, "fan9_max") == 0) {
+		p = &fancpld_alarm_data.fan9.alarm_max;
+	} else if(strcmp(name, "fan10_min") == 0) {
+		p = &fancpld_alarm_data.fan10.alarm_min;
+	} else if(strcmp(name, "fan10_max") == 0) {
+		p = &fancpld_alarm_data.fan10.alarm_max;
+	} else {
+		return -1;
+	}
+
+	if(opcode == SYSFS_READ)
+		return *p;
+	else if(opcode == SYSFS_WRITE)
+		*p = value;
+	else
+		return -1;
+
+	return 0;
+}
+
 
 static ssize_t fan_rpm_show(struct device *dev,
                                     struct device_attribute *attr,
@@ -58,6 +143,55 @@ static ssize_t fan_rpm_show(struct device *dev,
 	return scnprintf(buf, PAGE_SIZE, "%d\n", value * 150);
 }
 
+static ssize_t fan_alarm_show(struct device *dev,
+                                    struct device_attribute *attr,
+                                    char *buf)
+{
+	int value = -1;
+	struct i2c_client *client = to_i2c_client(dev);
+	i2c_dev_data_st *data = i2c_get_clientdata(client);
+	i2c_sysfs_attr_st *i2c_attr = TO_I2C_SYSFS_ATTR(attr);
+	const i2c_dev_attr_st *dev_attr = i2c_attr->isa_i2c_attr;
+	const char *name = dev_attr->ida_name;
+
+	if(!name)
+		return -1;
+
+	value = alarm_value_rw(name, SYSFS_READ, 0);
+
+	return scnprintf(buf, PAGE_SIZE, "%d\n", value);
+}
+
+static int fan_alarm_store(struct device *dev,
+        struct device_attribute *attr, const char *buf, size_t count)
+{
+	int rc;
+	int write_value = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	i2c_dev_data_st *data = i2c_get_clientdata(client);
+	i2c_sysfs_attr_st *i2c_attr = TO_I2C_SYSFS_ATTR(attr);
+	const i2c_dev_attr_st *dev_attr = i2c_attr->isa_i2c_attr;
+	const char *name = dev_attr->ida_name;
+
+	if(!name)
+		return -1;
+
+	if (buf == NULL) {
+		return -ENXIO;
+	}
+
+	rc = kstrtol(buf, 10, &write_value);
+	if (rc != 0)	{
+		return count;
+	}
+	rc = alarm_value_rw(name, SYSFS_WRITE, write_value);
+	if(rc < 0)
+		return -1;
+
+	return count;
+}
+
+
 
 enum chips {
 	FANCPLD = 1,
@@ -69,7 +203,7 @@ static const struct i2c_device_id fancpld_id[] = {
 	{ }
 };
 
-static i2c_dev_data_st fancpld_data;
+
 static const i2c_dev_attr_st fancpld_attr_table[] = {
 	{
 	  "version",
@@ -386,6 +520,146 @@ static const i2c_dev_attr_st fancpld_attr_table[] = {
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x66, 1, 1,
+	},
+	{
+	  "fan1_min",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan1_max",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan2_min",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan2_max",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan3_min",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan3_max",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan4_min",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan4_max",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan5_min",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan5_max",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan6_min",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan6_max",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan7_min",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan7_max",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan8_min",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan8_max",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan9_min",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan9_max",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan10_min",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
+	},
+	{
+	  "fan10_max",
+	  NULL,
+	  fan_alarm_show,
+	  fan_alarm_store,
+	  FANCPLD_ALARM_NODE, 0, 0,
 	},
 
 };
