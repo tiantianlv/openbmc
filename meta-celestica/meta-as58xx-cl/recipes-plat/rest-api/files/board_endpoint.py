@@ -24,6 +24,8 @@ import rest_sensors
 import rest_led
 import rest_server
 import rest_mTerm
+import rest_eth
+import rest_raw
 from rest_utils import dumps_bytestr, get_endpoints
 
 class boardApp_Handler:
@@ -84,3 +86,16 @@ class boardApp_Handler:
     async def rest_mTerm_hdl(self, request):
         return web.json_response(rest_mTerm.get_mTerm_status(), dumps=dumps_bytestr)
 
+    # Handler for sys/eth resource endpoint
+    async def rest_eth_hdl(self, request):
+        return web.json_response(rest_eth.get_eth(), dumps=dumps_bytestr)
+
+    # Handler for eth resource endpoint
+    async def rest_eth_act_hdl(self, request):
+        data = await request.json()
+        return web.json_response(rest_eth.eth_action(data), dumps=dumps_bytestr)
+
+    # Handler for raw resource endpoint
+    async def rest_raw_act_hdl(self, request):
+        data = await request.json()
+        return web.json_response(rest_raw.raw_action(data), dumps=dumps_bytestr)

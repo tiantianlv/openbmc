@@ -36,3 +36,6 @@ def setup_board_routes(app):
     app.router.add_get(board_routes[6], bhandler.rest_fruid_psu_hdl)
     app.router.add_get(board_routes[7], bhandler.rest_fruid_fan_hdl)
     app.router.add_get(board_routes[8], bhandler.rest_fruid_sys_hdl)
+    app.router.add_get(board_routes[9], bhandler.rest_eth_hdl)
+    app.router.add_post(board_routes[9], bhandler.rest_eth_act_hdl)
+    app.router.add_post(board_routes[10], bhandler.rest_raw_act_hdl)
