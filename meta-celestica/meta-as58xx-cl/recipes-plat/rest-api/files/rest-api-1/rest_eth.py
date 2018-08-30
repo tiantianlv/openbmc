@@ -17,10 +17,10 @@ import re
 import subprocess
 import bmc_command
 
-def get_led():
+def get_eth():
+    result = []
     fresult = []
-    proc = subprocess.Popen(['source /usr/local/bin/openbmc-utils.sh;'
-                            'sys_led'],
+    proc = subprocess.Popen(['ifconfig eth0'],
                             shell=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)
@@ -31,21 +31,22 @@ def get_led():
         data = ex.output
         err = ex.error
 
+    for edata in data.split('\n'):
+        result.append(edata)
+
     fresult = {
-                "Information": data,
+                "Information": result,
                 "Actions": [],
                 "Resources": [],
               }
 
     return fresult
 
-def led_action(data):
+def eth_action(data):
     result = []
-    value = data["action"]
-    blink = data["blink"]
-    cmd = 'sys_led ' + value + ' ' + blink
-    proc = subprocess.Popen(['source /usr/local/bin/openbmc-utils.sh;'
-                            + cmd],
+    value = data["ip"]
+    cmd = 'ifconfig eth0 ' + value
+    proc = subprocess.Popen([cmd],
                             shell=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)

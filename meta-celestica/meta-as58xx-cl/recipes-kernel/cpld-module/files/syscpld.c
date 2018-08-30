@@ -226,6 +226,23 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  0x22, 0, 4,
 	},
 	{
+	  "bios_cs",
+	  "0x1: select BIOS0\n"
+	  "0x3: select BIOS1",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  I2C_DEV_ATTR_STORE_DEFAULT,
+	  0x23, 0, 2,
+	},
+	{
+	  "bios_ctrl",
+	  "0x0: connect to CPU, control by software\n"
+	  "0x1: disable connect to CPU, control by CPLD\n"
+	  "0x2: connect to BMC, control by software",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  I2C_DEV_ATTR_STORE_DEFAULT,
+	  0x23, 4, 2,
+	},
+	{
 	  "cb_pwr_btn_n",
 	  NULL,
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
