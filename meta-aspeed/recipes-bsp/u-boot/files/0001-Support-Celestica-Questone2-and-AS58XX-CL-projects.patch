@@ -175,7 +175,7 @@ index 0000000..b9af91e
 +
 +#define CONFIG_SYS_LONGHELP
 +
-+#define CONFIG_BOOTARGS   "debug console=ttyS0,115200n8 root=/dev/ram rw"
++#define CONFIG_BOOTARGS   "debug console=ttyS0,9600n8 root=/dev/ram rw"
 +#define CONFIG_BOOTFILE   "flash-cel_as58xx-cl"
 +
 +/*
@@ -184,7 +184,7 @@ index 0000000..b9af91e
 +#define CONFIG_SYS_NS16550_COM1 AST_UART0_BASE
 +#define CONFIG_CONS_INDEX       1
 +#define CONFIG_ASPEED_COM       AST_UART0_BASE
-+#define CONFIG_BAUDRATE         115200
++#define CONFIG_BAUDRATE         9600
 +
 +/*
 + * UART configurtion
