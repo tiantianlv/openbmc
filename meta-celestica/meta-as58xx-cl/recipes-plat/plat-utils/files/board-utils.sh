@@ -216,7 +216,7 @@ come_reset() {
 
 come_boot_info() {
         reg1=$(i2cget -f -y 0 0x0d 0x70)
-	reg2=$(i2cget -f -y 0 0x0d 0x22)
+        reg2=$(i2cget -f -y 0 0x0d 0x22)
         let "boot_status = (reg2 & 0xf)"
         let "boot_source = (reg1 & 0x2) >> 1"
 
