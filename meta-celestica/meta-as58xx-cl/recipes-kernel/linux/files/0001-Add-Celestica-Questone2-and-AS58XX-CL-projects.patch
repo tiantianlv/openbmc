@@ -1,18 +1,21 @@
-From 9794ed0602ad2bb4430b45b8a09d60746c178fa7 Mon Sep 17 00:00:00 2001
+From 3fbe697abd94c1c33bd64b36bee03e874bbb9ae6 Mon Sep 17 00:00:00 2001
 From: zmzhan <mzhan@celestica.com>
-Date: Wed, 29 Aug 2018 18:20:21 +0800
+Date: Wed, 5 Sep 2018 14:50:42 +0800
 Subject: [PATCH] Add Celestica Questone2 and AS58XX-CL projects
 
 ---
  arch/arm/mach-aspeed/Kconfig             | 12 +++++++
  arch/arm/plat-aspeed/Makefile            | 10 ++++++
- arch/arm/plat-aspeed/dev-eth.c           |  3 +-
+ arch/arm/plat-aspeed/dev-eth.c           |  5 +--
  arch/arm/plat-aspeed/dev-i2c-cel.c       | 49 ++++++++++++++++++++++++++++
- arch/arm/plat-aspeed/dev-sdhci.c         |  5 +++
+ arch/arm/plat-aspeed/dev-sdhci.c         |  7 ++++
  arch/arm/plat-aspeed/dev-spi-fb.c        | 56 ++++++++++++++++++++++++++++++--
  arch/arm/plat-aspeed/dev-uart.c          | 22 +++++++++++--
+ drivers/hwmon/pmbus/pmbus_core.c         |  2 ++
  drivers/net/ethernet/faraday/ftgmac100.c | 13 ++++++--
- 8 files changed, 162 insertions(+), 8 deletions(-)
+ drivers/net/phy/broadcom.c               |  2 +-
+ drivers/net/phy/mdio_bus.c               |  8 +++++
+ 11 files changed, 176 insertions(+), 10 deletions(-)
  create mode 100644 arch/arm/plat-aspeed/dev-i2c-cel.c
 
 diff --git a/arch/arm/mach-aspeed/Kconfig b/arch/arm/mach-aspeed/Kconfig
@@ -60,7 +63,7 @@ index 55d9a0d..afcc25e 100644
    obj-y += dev-spi-fb.o dev-i2c-common.o
  else
 diff --git a/arch/arm/plat-aspeed/dev-eth.c b/arch/arm/plat-aspeed/dev-eth.c
-index 7e28d00..071abc7 100644
+index 7e28d00..13f5f32 100644
 --- a/arch/arm/plat-aspeed/dev-eth.c
 +++ b/arch/arm/plat-aspeed/dev-eth.c
 @@ -45,7 +45,8 @@
@@ -73,6 +76,15 @@ index 7e28d00..071abc7 100644
  #define DRVNAME "ftgmac100"
  #else
  #define DRVNAME "ast_gmac"
+@@ -158,7 +159,7 @@ void __init ast_add_device_gmac(void)
+ 	// MAC specs.
+ #if !defined(CONFIG_WEDGE) && !defined(CONFIG_WEDGE100) && \
+     !defined(CONFIG_CMM) && !defined(CONFIG_MINIPACK) && \
+-    !defined(CONFIG_GALAXY100)
++    !defined(CONFIG_GALAXY100) && !defined(CONFIG_AS58XX_CL)
+ 
+ 	ast_eth0_data.DF_support = !isRevA0;
+ 
 diff --git a/arch/arm/plat-aspeed/dev-i2c-cel.c b/arch/arm/plat-aspeed/dev-i2c-cel.c
 new file mode 100644
 index 0000000..6e9a705
@@ -129,7 +141,7 @@ index 0000000..6e9a705
 +  dev_i2c_add_pca954x(dev_i2c_pca954x_info, size_dev_i2c_pca954x_info);
 +}
 diff --git a/arch/arm/plat-aspeed/dev-sdhci.c b/arch/arm/plat-aspeed/dev-sdhci.c
-index ba5b165..d4ee398 100644
+index ba5b165..344307c 100644
 --- a/arch/arm/plat-aspeed/dev-sdhci.c
 +++ b/arch/arm/plat-aspeed/dev-sdhci.c
 @@ -30,6 +30,7 @@
@@ -140,13 +152,15 @@ index ba5b165..d4ee398 100644
  
  extern void ast_sd_set_8bit_mode(u8 mode);
  
-@@ -109,6 +110,10 @@ void __init ast_add_device_sdhci(void)
+@@ -109,6 +110,12 @@ void __init ast_add_device_sdhci(void)
  #if defined CONFIG_MINIPACK || defined CONFIG_YAMP
  	ast_scu_multi_func_sdhc_slot(2);
  #else
 +#if defined(CONFIG_QUESTONE2) || defined(CONFIG_AS58XX_CL)
 +	writel(readl((void *)(IO_ADDRESS(AST_GPIO_BASE) + 0x1e4)) | (1 << 24), (void *)(IO_ADDRESS(AST_GPIO_BASE)+ 0x1e4));
 +	writel(readl((void *)(IO_ADDRESS(AST_GPIO_BASE) + 0x1e0)) | (1 << 24), (void *)(IO_ADDRESS(AST_GPIO_BASE) + 0x1e0));
++	writel(readl((void *)(IO_ADDRESS(AST_GPIO_BASE) + 0x24)) | (1 << 29), (void *)(IO_ADDRESS(AST_GPIO_BASE)+ 0x24));
++	writel(readl((void *)(IO_ADDRESS(AST_GPIO_BASE) + 0x20)) | (1 << 29), (void *)(IO_ADDRESS(AST_GPIO_BASE) + 0x20));
 +#endif
  	ast_scu_multi_func_sdhc_slot(3);
  #endif
@@ -299,6 +313,26 @@ index 78123f7..f9848e9 100644
  #else
  	ast_scu_multi_func_uart(1);
  	ast_scu_multi_func_uart(3);
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index f8e7ce5..fef8a63 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -1094,6 +1094,7 @@ static int pmbus_add_sensor_attrs_one(struct i2c_client *client,
+ 				attr->class, true, true);
+ 	if (!base)
+ 		return -ENOMEM;
++#if !defined (CONFIG_AS58XX_CL)
+ 	if (attr->sfunc) {
+ 		ret = pmbus_add_limit_attrs(client, data, info, name,
+ 					    index, page, base, attr);
+@@ -1115,6 +1116,7 @@ static int pmbus_add_sensor_attrs_one(struct i2c_client *client,
+ 				return ret;
+ 		}
+ 	}
++#endif
+ 	return 0;
+ }
+ 
 diff --git a/drivers/net/ethernet/faraday/ftgmac100.c b/drivers/net/ethernet/faraday/ftgmac100.c
 index fdd0787..39c62f3 100644
 --- a/drivers/net/ethernet/faraday/ftgmac100.c
@@ -338,6 +372,45 @@ index fdd0787..39c62f3 100644
  	ftgmac100_start_hw(priv, 100);
  #elif defined(CONFIG_YAMP)
  	ftgmac100_start_hw(priv, 100);
+diff --git a/drivers/net/phy/broadcom.c b/drivers/net/phy/broadcom.c
+index 922cef6..ce75111 100644
+--- a/drivers/net/phy/broadcom.c
++++ b/drivers/net/phy/broadcom.c
+@@ -372,7 +372,7 @@ static int bcm54616s_config_aneg(struct phy_device *phydev)
+ 
+ #if defined(CONFIG_WEDGE) || defined(CONFIG_WEDGE100) || defined(CONFIG_CMM) || \
+ 	defined(CONFIG_MINIPACK) || defined(CONFIG_YAMP) || \
+-	defined(CONFIG_GALAXY100)
++	defined(CONFIG_GALAXY100) || defined(CONFIG_AS58XX_CL)
+ 	/* disable GTXCLK Clock Delay */
+ 	phy_write(phydev, 0x1C, 0x8C00);
+ 	/* Disable RGMII RXD to RXC skew */
+diff --git a/drivers/net/phy/mdio_bus.c b/drivers/net/phy/mdio_bus.c
+index 095ef3f..afab6b2 100644
+--- a/drivers/net/phy/mdio_bus.c
++++ b/drivers/net/phy/mdio_bus.c
+@@ -271,6 +271,9 @@ int mdiobus_register(struct mii_bus *bus)
+ 		bus->reset(bus);
+ 
+ 	for (i = 0; i < PHY_MAX_ADDR; i++) {
++#if defined(CONFIG_AS58XX_CL)
++		i = 0x0d; /*54616s phy addr*/
++#endif
+ 		if ((bus->phy_mask & (1 << i)) == 0) {
+ 			struct phy_device *phydev;
+ 
+@@ -279,6 +282,11 @@ int mdiobus_register(struct mii_bus *bus)
+ 				err = PTR_ERR(phydev);
+ 				goto error;
+ 			}
++#if defined(CONFIG_AS58XX_CL)
++			if(phydev) {
++				break;
++			}
++#endif
+ 		}
+ 	}
+ 
 -- 
 2.7.4
 

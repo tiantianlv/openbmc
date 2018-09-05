@@ -1,17 +1,18 @@
-From 19f22d655d21eaf5417b9004008a2d39724e3427 Mon Sep 17 00:00:00 2001
+From bc365d05c5f92fb002d95ec40f5711cb6c211c4c Mon Sep 17 00:00:00 2001
 From: zmzhan <mzhan@celestica.com>
-Date: Mon, 27 Aug 2018 13:51:34 +0800
+Date: Tue, 4 Sep 2018 12:42:41 +0800
 Subject: [PATCH] Support Celestica Questone2 and AS58XX-CL projects
 
 ---
  arch/arm/Kconfig                |  11 ++
  board/celestica/Kconfig         |  25 ++++
  board/celestica/MAINTAINERS     |   8 ++
- configs/cel_as58xx-cl_defconfig |  26 +++++
- configs/cel_questone2_defconfig |  26 +++++
- include/configs/cel_as58xx-cl.h | 253 ++++++++++++++++++++++++++++++++++++++++
- include/configs/cel_questone2.h | 252 +++++++++++++++++++++++++++++++++++++++
- 7 files changed, 601 insertions(+)
+ configs/cel_as58xx-cl_defconfig |  26 ++++
+ configs/cel_questone2_defconfig |  26 ++++
+ drivers/net/aspeednic.c         |  11 ++
+ include/configs/cel_as58xx-cl.h | 261 ++++++++++++++++++++++++++++++++++++++++
+ include/configs/cel_questone2.h | 252 ++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 620 insertions(+)
  create mode 100644 board/celestica/Kconfig
  create mode 100644 board/celestica/MAINTAINERS
  create mode 100644 configs/cel_as58xx-cl_defconfig
@@ -157,12 +158,41 @@ index 0000000..ed9c090
 +CONFIG_SPI_FLASH_MACRONIX=y
 +CONFIG_SPI_FLASH_MTD=y
 +CONFIG_SYS_PROMPT="Cel-boot=> "
+diff --git a/drivers/net/aspeednic.c b/drivers/net/aspeednic.c
+index 473aee2..d7b0ded 100644
+--- a/drivers/net/aspeednic.c
++++ b/drivers/net/aspeednic.c
+@@ -1114,6 +1114,9 @@ static void aspeednic_probe_phy(struct eth_device *dev)
+ 
+ 	/* Check if the PHY is up to snuff..., max phy addr is 0x1f */
+ 	for (phy_addr = 0; phy_addr <= 0x1f; phy_addr++) {
++#ifdef CONFIG_CEL_AS58XX_CL
++		phy_addr = CONFIG_BCM54616S_PHY_ADDR;
++#endif
+ 		phy_id = phy_read_register(dev, MII_PHYSID1, phy_addr);
+ 		/*
+ 		 * When it is unable to found PHY,
+@@ -1139,6 +1142,14 @@ static int aspeednic_init(struct eth_device* dev, bd_t* bis)
+ 
+ 	aspeednic_write_hwaddr(dev);
+ 
++#ifdef CONFIG_CEL_AS58XX_CL
++	/*configure Gbe PHY 100M auto-nego enable*/
++	phy_write_register(dev, 0x04, 0x0e, 0x01e1);
++	phy_write_register(dev, 0x1c, 0x0e, 0x8804);
++	phy_write_register(dev, 0x1c, 0x0e, 0xb4e3);
++	phy_write_register(dev, 0x1c, 0x0e, 0xb864);
++#endif
++
+ 	for (i = 0; i < NUM_RX_DESC; i++) {
+ 		rx_ring[i].status = cpu_to_le32(RXPKT_RDY);
+ 		rx_ring[i].buf = (u32)(&rx_buffer[i]);
 diff --git a/include/configs/cel_as58xx-cl.h b/include/configs/cel_as58xx-cl.h
 new file mode 100644
-index 0000000..b9af91e
+index 0000000..3f21d67
 --- /dev/null
 +++ b/include/configs/cel_as58xx-cl.h
-@@ -0,0 +1,253 @@
+@@ -0,0 +1,261 @@
 +/**
 + * (C) Copyright 2018, Celestica Inc.
 + *
@@ -201,11 +231,19 @@ index 0000000..b9af91e
 +/*
 + * NIC configuration
 + */
++#define CONFIG_BCM54616S_PHY_ADDR      0xd
 +#define CONFIG_MAC2_ENABLE
 +#define CONFIG_MAC1_PHY_SETTING     0
 +#define CONFIG_MAC2_PHY_SETTING     0
 +#define CONFIG_ASPEED_MAC_NUMBER  2
 +#define CONFIG_ASPEED_MAC_CONFIG  2
++#define _PHY_SETTING_CONCAT(mac) CONFIG_MAC##mac##_PHY_SETTING
++#define _GET_MAC_PHY_SETTING(mac) _PHY_SETTING_CONCAT(mac)
++#define CONFIG_ASPEED_MAC_PHY_SETTING \
++  _GET_MAC_PHY_SETTING(CONFIG_ASPEED_MAC_CONFIG)
++#define CONFIG_MAC_INTERFACE_CLOCK_DELAY    0x2255
++#define CONFIG_RANDOM_MACADDR
++
 +
 +/*
 + * Watchdog configuration

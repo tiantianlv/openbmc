@@ -52,15 +52,16 @@ if [ "$board_type" = "Phalanx" ]; then
 FAN_EEPROM_MAX=5
 FAN5_EEPROM_I2C_BUS=36
 FAN5_EEPROM_I2C_ADDR=50
-fi
+else
 FAN_EEPROM_MAX=4
-FAN1_EEPROM_I2C_BUS=16
+fi
+FAN1_EEPROM_I2C_BUS=32
 FAN1_EEPROM_I2C_ADDR=50
-FAN2_EEPROM_I2C_BUS=17
+FAN2_EEPROM_I2C_BUS=34
 FAN2_EEPROM_I2C_ADDR=50
-FAN3_EEPROM_I2C_BUS=19
+FAN3_EEPROM_I2C_BUS=36
 FAN3_EEPROM_I2C_ADDR=50
-FAN4_EEPROM_I2C_BUS=20
+FAN4_EEPROM_I2C_BUS=38
 FAN4_EEPROM_I2C_ADDR=50
 
 #For Phalanx
@@ -123,10 +124,10 @@ psu_info() {
 			echo "Present: Absent"
 			return 1
 		fi
-		echo "MFR ID:  $(read_info 6 50 mfr_id)"
-		echo "Product Name: $(read_info 6 50 mfr_name)"
-		echo "Serial Number: $(read_info 6 50 mfr_serial)"
-		echo "Product Version: $(read_info 6 50 mfr_version)"
+		echo "MFR ID:  $(read_info 24 50 mfr_id)"
+		echo "Product Name: $(read_info 24 50 mfr_name)"
+		echo "Serial Number: $(read_info 24 50 mfr_serial)"
+		echo "Product Version: $(read_info 24 50 mfr_version)"
 	elif [ "$1" == "2" ]; then
 		echo -e "\nPSU2 FRU:"
 		$(psu_present 2)
@@ -134,10 +135,10 @@ psu_info() {
 			echo "Present: Absent"
 			return 1
 		fi
-		echo "MFR ID:  $(read_info 6 51 mfr_id)"
-		echo "Product Name: $(read_info 6 51 mfr_name)"
-		echo "Serial Number: $(read_info 6 51 mfr_serial)"
-		echo "Product Version: $(read_info 6 51 mfr_version)"
+		echo "MFR ID:  $(read_info 25 51 mfr_id)"
+		echo "Product Name: $(read_info 25 51 mfr_name)"
+		echo "Serial Number: $(read_info 25 51 mfr_serial)"
+		echo "Product Version: $(read_info 25 51 mfr_version)"
 	else
 		echo "Invalid PSU number"
 	fi
@@ -227,7 +228,7 @@ fan_fru() {
 	ln -s /sys/bus/i2c/devices/i2c-${i2c_bus}/${i2c_bus}-00${i2c_addr}/eeprom  ${EEPROM_LINK_FILE}
 	shift
 	syseeprom $@
-
+	echo
 }
 
 lc_fru() {
@@ -285,7 +286,7 @@ fru_status() {
 		show_psu_status 1
 		echo -e "\nPSU2:"
 		show_psu_status 2
-		echo ""
+		echo
 	fi
 
 	if [ "$1" = "fan" ] || [ $all -eq 1 ]; then

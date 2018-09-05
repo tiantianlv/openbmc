@@ -78,8 +78,8 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  0x4, 0, 1,
 	},
 	{
-	  "si_reset",
-	  "switch I2C reset control:\n"
+	  "i210_reset",
+	  "I210 reset control:\n"
 	  "0x0: reset\n"
 	  "0x1 not reset",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
@@ -87,22 +87,22 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  0x4, 1, 1,
 	},
 	{
-	  "fan_i2c_reset",
-	  "FAN I2C reset control:\n"
+	  "pca9548_reset",
+	  "PCA9548 reset control:\n"
 	  "0x0: reset\n"
 	  "0x1 not reset",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
-	  0x4, 4, 1,
+	  0x4, 2, 1,
 	},
 	{
-	  "fan_reset",
-	  "FAN reset control:\n"
+	  "fan_cpld_reset",
+	  "FAN CPLD reset control:\n"
 	  "0x0: reset\n"
 	  "0x1 not reset",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
-	  0x4, 5, 1,
+	  0x4, 3, 1,
 	},
 	{
 	  "bmc_reset",
@@ -111,35 +111,47 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  "0x1 not reset",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
+	  0x4, 4, 1,
+	},
+	{
+	  "bcm5387_reset",
+	  "BCM5387 reset control:\n"
+	  "0x0: reset\n"
+	  "0x1 not reset",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  I2C_DEV_ATTR_STORE_DEFAULT,
+	  0x4, 5, 1,
+	},
+	{
+	  "tpm_reset",
+	  "TPM reset control:\n"
+	  "0x0: reset\n"
+	  "0x1 not reset",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  I2C_DEV_ATTR_STORE_DEFAULT,
 	  0x4, 6, 1,
 	},
 	{
-	  "psu_i2c_en1",
-	  NULL,
+	  "usb_iso_en",
+	  "0x0: enable\n"
+	  "0x1: disable",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
 	  0xa, 0, 1,
 	},
 	{
-	  "psu_i2c_en2",
+	  "usb_front_oc",
 	  NULL,
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
-	  I2C_DEV_ATTR_STORE_DEFAULT,
-	  0xa, 1, 1,
+	  NULL,
+	  0xb, 0, 1,
 	},
 	{
-	  "psu_i2c_ready1",
+	  "tps2051_oc",
 	  NULL,
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
-	  0xa, 4, 1,
-	},
-	{
-	  "psu_i2c_ready2",
-	  NULL,
-	  I2C_DEV_ATTR_SHOW_DEFAULT,
-	  NULL,
-	  0xa, 5, 1,
+	  0xb, 1, 1,
 	},
 	{
 	  "sol_control",
@@ -150,7 +162,7 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  0xc, 0, 1,
 	},
 	{
-	  "int_status",
+	  "cpu_int_status",
 	  "0x0: interrupt\n"
 	  "0x1: no interrupt",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
@@ -158,46 +170,68 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  0x10, 0, 1,
 	},
 	{
-	  "lm75_cb_int1_n",
+	  "bmc_int_status",
+	  "0x0: interrupt\n"
+	  "0x1: no interrupt",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
+	  0x10, 1, 1,
+	},
+	{
+	  "sw_lm75_int_status",
+	  "0x0: interrupt\n"
+	  "0x1: no interrupt",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x11, 0, 1,
 	},
 	{
-	  "fan_int",
-	  NULL,
+	  "i210_wake_int_status",
+	  "0x0: interrupt\n"
+	  "0x1: no interrupt",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x11, 1, 1,
 	},
 	{
 	  "psu1_int",
-	  NULL,
+	  "0x0: interrupt\n"
+	  "0x1: no interrupt",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x11, 2, 1,
 	},
 	{
 	  "psu2_int",
-	  NULL,
+	  "0x0: interrupt\n"
+	  "0x1: no interrupt",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x11, 3, 1,
 	},
 	{
-	  "sw_lm75_1_int",
-	  NULL,
+	  "bmc_54616s_int_status",
+	  "0x0: interrupt\n"
+	  "0x1: no interrupt",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x11, 4, 1,
 	},
 	{
-	  "sw_lm75_2_int",
-	  NULL,
+	  "gbe_54616s_int_status",
+	  "0x0: interrupt\n"
+	  "0x1: no interrupt",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x11, 5, 1,
+	},
+	{
+	  "gbe_54616s_b_int_status",
+	  "0x0: interrupt\n"
+	  "0x1: no interrupt",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  NULL,
+	  0x11, 6, 1,
 	},
 	{
 	  "pwr_come_en",
@@ -300,20 +334,11 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  0x31, 3, 1,
 	},
 	{
-	  "fan_ctrl_en",
-	  "0x0: force fan to full speed\n"
-	  "0x1: disable",
+	  "fru_eeprom_wp",
+	  NULL,
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
-	  0x59, 0, 1,
-	},
-	{
-	  "led_ctrl_en",
-	  "0x0: force all fans led to amber\n"
-	  "0x1: disable",
-	  I2C_DEV_ATTR_SHOW_DEFAULT,
-	  I2C_DEV_ATTR_STORE_DEFAULT,
-	  0x59, 1, 1,
+	  0x31, 4, 1,
 	},
 	{
 	  "psu_r_en",
@@ -328,20 +353,6 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
 	  0x5f, 1, 1,
-	},
-	{
-	  "psu_r_kill_en",
-	  NULL,
-	  I2C_DEV_ATTR_SHOW_DEFAULT,
-	  I2C_DEV_ATTR_STORE_DEFAULT,
-	  0x5f, 4, 1,
-	},
-	{
-	  "psu_l_kill_en",
-	  NULL,
-	  I2C_DEV_ATTR_SHOW_DEFAULT,
-	  I2C_DEV_ATTR_STORE_DEFAULT,
-	  0x5f, 5, 1,
 	},
 	{
 	  "psu_r_status",
@@ -376,28 +387,12 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  0x60, 3, 1,
 	},
 	{
-	  "psu_r_laert",
-	  "0x0: alert\n"
-	  "0x1: not alert",
-	  I2C_DEV_ATTR_SHOW_DEFAULT,
-	  NULL,
-	  0x60, 4, 1,
-	},
-	{
-	  "psu_l_laert",
-	  "0x0: alert\n"
-	  "0x1: not alert",
-	  I2C_DEV_ATTR_SHOW_DEFAULT,
-	  NULL,
-	  0x60, 5, 1,
-	},
-	{
 	  "psu_r_ac_status",
 	  "0x0: not OK\n"
 	  "0x1: OK",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
-	  0x60, 6, 1,
+	  0x60, 4, 1,
 	},
 	{
 	  "psu_l_ac_status",
@@ -405,7 +400,7 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  "0x1: OK",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
-	  0x60, 7, 1,
+	  0x60, 5, 1,
 	},
 	{
 	  "psu_l_led_ctrl_en",
@@ -500,39 +495,6 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  I2C_DEV_ATTR_STORE_DEFAULT,
 	  0x75, 0, 1,
 	},
-	{
-	  "lm75_1_status",
-	  "0x0: over temp\n"
-	  "0x1: normal",
-	  I2C_DEV_ATTR_SHOW_DEFAULT,
-	  NULL,
-	  0x76, 0, 1,
-	},
-	{
-	  "lm75_2_status",
-	  "0x0: over temp\n"
-	  "0x1: normal",
-	  I2C_DEV_ATTR_SHOW_DEFAULT,
-	  NULL,
-	  0x76, 1, 1,
-	},
-	{
-	  "lm75_bb_status",
-	  "0x0: over temp\n"
-	  "0x1: normal",
-	  I2C_DEV_ATTR_SHOW_DEFAULT,
-	  NULL,
-	  0x76, 2, 1,
-	},
-	{
-	  "shutdown_status",
-	  "0x0: normal\n"
-	  "0x1: shutdown",
-	  I2C_DEV_ATTR_SHOW_DEFAULT,
-	  NULL,
-	  0x76, 4, 1,
-	},
-
 };
 
 static int syscpld_remove(struct i2c_client *client)
