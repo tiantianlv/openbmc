@@ -25,6 +25,25 @@ set_value() {
 	echo ${4} > /sys/bus/i2c/devices/i2c-${1}/${1}-00${2}/${3} 2> /dev/null
 }
 
+set_hwmon_value() {
+	echo ${5} > /sys/bus/i2c/devices/i2c-${1}/${1}-00${2}/hwmon/hwmon${3}/${4} 2> /dev/null
+}
+
+get_hwmon_id() {
+	path="/sys/bus/i2c/devices/i2c-${1}/${1}-00${2}/"
+	str=$(find $path -name "$3")
+	id=$(echo $str | awk -F 'hwmon' '{print $3}' | awk -F '/' '{print $1}')
+	if [ $id ]; then
+		if [ "$id" -gt 0 ] 2>/dev/null; then
+			echo $id
+		else
+			echo 0
+		fi
+		return 0
+	fi
+	echo 0
+}
+
 board_type=$(board_type)
 if [ "$board_type" = "Phalanx" ]; then
 	mv /etc/sensors.d/phalanx.conf /etc/sensors.d/as58xx-cl.conf
@@ -37,7 +56,7 @@ fi
 #func    bus addr node val
 #IR38060
 set_value 4 43 in0_min 950
-set_value 4 43 in0_max 1050
+set_value 4 43 in0_max 1100
 set_value 4 43 curr1_min 0
 set_value 4 43 curr1_max 3000
 
@@ -84,8 +103,58 @@ set_value 8 0d fan8_max 23000
 
 #PSU1
 #add it to sensors.config
+val=$(get_hwmon_id 24 58 in1_min)
+if [ "$val" -gt "0" ] ; then
+set_hwmon_value 24 58 $val in1_min 90000
+set_hwmon_value 24 58 $val in1_max 264000
+set_hwmon_value 24 58 $val in2_min 11640
+set_hwmon_value 24 58 $val in2_max 12360
+set_hwmon_value 24 58 $val fan1_min 1000
+set_hwmon_value 24 58 $val fan1_max 12000
+set_hwmon_value 24 58 $val temp1_min 0
+set_hwmon_value 24 58 $val temp1_max 70000
+set_hwmon_value 24 58 $val temp2_min 0
+set_hwmon_value 24 58 $val temp2_max 70000
+set_hwmon_value 24 58 $val power1_max 122200000
+set_hwmon_value 24 58 $val power2_max 1100000000
+set_hwmon_value 24 58 $val curr1_min 0
+set_hwmon_value 24 58 $val curr1_max 7000
+set_hwmon_value 24 58 $val curr2_min 0
+set_hwmon_value 24 58 $val curr2_max 90000
+fi
 #PSU2
 #add it to sensors.config
+val=$(get_hwmon_id 25 59 in1_min)
+if [ "$val" -gt "0" ] ; then
+set_hwmon_value 25 59 $val in1_min 90000
+set_hwmon_value 25 59 $val in1_max 264000
+set_hwmon_value 25 59 $val in2_min 11640
+set_hwmon_value 25 59 $val in2_max 12360
+set_hwmon_value 25 59 $val fan1_min 1000
+set_hwmon_value 25 59 $val fan1_max 12000
+set_hwmon_value 25 59 $val temp1_min 0
+set_hwmon_value 25 59 $val temp1_max 70000
+set_hwmon_value 25 59 $val temp2_min 0
+set_hwmon_value 25 59 $val temp2_max 70000
+set_hwmon_value 25 59 $val power1_max 122200000
+set_hwmon_value 25 59 $val power2_max 1100000000
+set_hwmon_value 25 59 $val curr1_min 0
+set_hwmon_value 25 59 $val curr1_max 7000
+set_hwmon_value 25 59 $val curr2_min 0
+set_hwmon_value 25 59 $val curr2_max 90000
+fi
+
+#temp
+val=$(get_hwmon_id 39 48 temp1_max)
+if [ "$val" -gt "0" ] ; then
+set_hwmon_value 39 48 $val temp1_max 70000
+set_hwmon_value 39 48 $val temp1_max_hyst 60000
+fi
+val=$(get_hwmon_id 39 49 temp1_max)
+if [ "$val" -gt "0" ] ; then
+set_hwmon_value 39 49 $val temp1_max 70000
+set_hwmon_value 39 49 $val temp1_max_hyst 60000
+fi
 
 if [ "$board_type" = "Phalanx" ]; then
 set_value 8 0d fan9_min 1000

@@ -7,6 +7,7 @@ PWR_RESET_SYSFS="${SYSCPLD_SYSFS_DIR}/come_rst_n"
 SYSLED_CTRL_SYSFS="${SYSCPLD_SYSFS_DIR}/sysled_ctrl"
 SYSLED_SEL_SYSFS="${SYSCPLD_SYSFS_DIR}/sysled_select"
 SYSLED_SOL_CTRL_SYSFS="${SYSCPLD_SYSFS_DIR}/sol_control"
+SYSLED_BCM5387_RST_SYSFS="${SYSCPLD_SYSFS_DIR}/bcm5387_reset"
 
 
 wedge_power() {
@@ -54,6 +55,7 @@ wedge_is_us_on() {
     elif [ $val -eq 0 ]; then
         return 1
 	else
+		echo -n "read value $val "
 		return 2
     fi
 }
@@ -231,4 +233,74 @@ come_boot_info() {
         else
                 echo "COMe CPU boots from BIOS Slave flash"
         fi
+}
+
+bios_upgrade() {
+        source /usr/local/bin/openbmc-utils.sh
+        gpio_set E4 1
+
+        if [ ! -c /dev/spidev1.0 ]; then
+                mknod /dev/spidev1.0 c 153 0
+        fi
+        modprobe spidev
+
+        if [ "$1" == "master" ]; then
+                i2cset -f -y 0 0x0d 0x23 0xe1
+        elif [ "$1" == "slave" ]; then
+                i2cset -f -y 0 0x0d 0x23 0xe3
+        else
+                echo "bios_upgrade [master/slave] [flash type] [operation:r/w/e] [file name]"
+        fi
+
+        if [ $# == 4 ]; then
+                flashrom -p linux_spi:dev=/dev/spidev1.0 -c $2 -$3 $4
+        elif [ $# == 3 ] && [ "$3" == "e" ]; then
+                flashrom -p linux_spi:dev=/dev/spidev1.0 -c $2 -E
+        elif [ $# == 2 ]; then
+                flashrom -p linux_spi:dev=/dev/spidev1.0 -c $2
+        fi
+
+        gpio_set E4 0
+        i2cset -f -y 0 0x0d 0x23 0xd1
+}
+
+come_reset() {
+        if [ "$1" == "master" ]; then
+                i2cset -f -y 0 0x0d 0x23 0x01
+                i2cset -f -y 0 0x0d 0x21 0
+                sleep 10
+                i2cset -f -y 0 0x0d 0x21 1
+        elif [ "$1" == "slave" ]; then
+                i2cset -f -y 0 0x0d 0x23 0x03
+                i2cset -f -y 0 0x0d 0x21 0
+                sleep 10
+                i2cset -f -y 0 0x0d 0x21 1
+        else
+                echo "come_reset [master/slave]"
+        fi
+}
+
+come_boot_info() {
+        reg1=$(i2cget -f -y 0 0x0d 0x70)
+        reg2=$(i2cget -f -y 0 0x0d 0x22)
+        let "boot_status = (reg2 & 0xf)"
+        let "boot_source = (reg1 & 0x2) >> 1"
+
+        if [ $boot_status -eq 15 ]; then
+                echo "COMe CPU boots OK"
+        else
+                echo "COMe CPU boots not OK"
+        fi
+
+        if [ $boot_source -eq 0 ]; then
+                echo "COMe CPU boots from BIOS Master flash"
+        else
+                echo "COMe CPU boots from BIOS Slave flash"
+        fi
+}
+
+BCM5387_reset() {
+	echo 0 > $SYSLED_BCM5387_RST_SYSFS
+	sleep 1
+	echo 1 > $SYSLED_BCM5387_RST_SYSFS
 }

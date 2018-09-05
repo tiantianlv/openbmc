@@ -18,8 +18,6 @@
 from openbmc_gpio_table import BoardGPIO
 
 board_gpio_table_v1 = [
-    BoardGPIO('GPIOA6', 'BMC_MDC'),
-    BoardGPIO('GPIOA7', 'BMC_MDIO'),
     BoardGPIO('GPIOB0', 'CB_SUS_STAT_N'),
     BoardGPIO('GPIOB1', 'CB_SUS_S4_N'),
     BoardGPIO('GPIOB2', 'CB_RST_N'),

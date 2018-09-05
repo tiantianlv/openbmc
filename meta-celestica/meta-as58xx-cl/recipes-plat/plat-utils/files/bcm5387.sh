@@ -1,6 +1,8 @@
 #!/bin/sh
 
-source /usr/local/fbpackages/utils/ast-functions
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
+
+. /usr/local/bin/openbmc-utils.sh
 
 status_switch() {
 	prompt=1
@@ -28,9 +30,7 @@ status_switch() {
 		read -t 5 -p "reset BCM5387(Y/n) " confirm
 		if [ "$confirm" = "Y" ] || [ "$confirm" = "y" ]; then
 			printf "Reset......"
-			gpio_set AA1 0
-			sleep 1
-			gpio_set AA1 1
+			BCM5387_reset
 			printf "OK\n"
 		else
 			printf "Timeout or Cancel"
@@ -38,9 +38,7 @@ status_switch() {
 		fi
 	else
 		printf "Reset......"
-		gpio_set AA1 0
-		sleep 1
-		gpio_set AA1 1
+		BCM5387_reset
 		printf "OK\n"
 	fi
 

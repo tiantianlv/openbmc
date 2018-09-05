@@ -41,7 +41,7 @@ def main():
     sys.stdout.flush()
     openbmc_gpio.setup_shadow()
 
-    gpio_previous_config()
+    #gpio_previous_config()
 
     setup_board_gpio(soc_gpio_table, board_gpio_table_v1)
     print('Done')

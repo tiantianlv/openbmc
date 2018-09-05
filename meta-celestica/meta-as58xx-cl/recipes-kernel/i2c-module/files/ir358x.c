@@ -79,6 +79,7 @@ struct ir358x_alarm_data {
 
 
 struct ir358x_data_t {
+	int id;
 	i2c_dev_data_st dev_data;
 	struct ir358x_alarm_data alarm_data;
 };
@@ -101,6 +102,7 @@ static ssize_t ir358x_vout_show(struct device *dev,
 	i2c_dev_data_st *data = i2c_get_clientdata(client);
 	i2c_sysfs_attr_st *i2c_attr = TO_I2C_SYSFS_ATTR(attr);
 	const i2c_dev_attr_st *dev_attr = i2c_attr->isa_i2c_attr;
+	struct ir358x_data_t *ir358x_data = TO_IR358X_DATA(data);
 	int value = -1;
 	int result;
 	int count = 10;
@@ -116,8 +118,11 @@ static ssize_t ir358x_vout_show(struct device *dev,
 	  IR358X_DEBUG("I2C read error!\n");
 	  return -1;
 	}
-	
-	result = (value * 1000) / 512;
+	if(ir358x_data->id == IR38060 || ir358x_data->id == IR38062
+		|| ir358x_data->id == IR3584)
+		result = (value * 1000) / 256;
+	else
+		result = (value * 1000) / 512;
 	
 	return scnprintf(buf, PAGE_SIZE, "%d\n", result);
 
@@ -323,6 +328,8 @@ static int ir358x_probe(struct i2c_client *client,
 	data = devm_kzalloc(&client->dev, sizeof(struct ir358x_data_t), GFP_KERNEL);
 	if (!data)
 		return -ENOMEM;
+
+	data->id = id->driver_data;
 
 	return i2c_dev_sysfs_data_init(client, &data->dev_data, ir358x_attr_table, n_attrs);
 }

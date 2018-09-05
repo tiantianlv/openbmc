@@ -399,6 +399,7 @@ static const struct i2c_dev_attr_t psu_attr_table[] = {
 		I2C_DEV_ATTR_STORE_DEFAULT,
 		0,
 	},
+#if 0
 	{
 		"fan1_input",
 		NULL,
@@ -406,6 +407,7 @@ static const struct i2c_dev_attr_t psu_attr_table[] = {
 		dps1100_fan1_store,
 		0,
 	},
+#endif
 };
 
 
@@ -605,6 +607,7 @@ static int dps1100_probe(struct i2c_client *client,
 	info = &data->info;
 	info->delay = DPS1100_WAIT_TIME;
 	info->pages = 1;
+#if 0
 	info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_STATUS_INPUT
 	  | PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
 	  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT
@@ -612,7 +615,16 @@ static int dps1100_probe(struct i2c_client *client,
 	  | PMBUS_HAVE_PIN | PMBUS_HAVE_POUT
 	  | PMBUS_HAVE_FAN12 | PMBUS_HAVE_STATUS_FAN12
 	  | PMBUS_HAVE_IIN | PMBUS_HAVE_TEMP2;
-
+#else
+	info->func[0] = PMBUS_HAVE_VIN
+	  | PMBUS_HAVE_VOUT
+	  | PMBUS_HAVE_IOUT 
+	  | PMBUS_HAVE_TEMP 
+	  | PMBUS_HAVE_PIN 
+	  | PMBUS_HAVE_POUT
+	  | PMBUS_HAVE_FAN12
+	  | PMBUS_HAVE_IIN | PMBUS_HAVE_TEMP2;
+#endif
 	info->read_word_data = pmbus_read_word_data;
 	info->write_word_data = pmbus_write_word_data;
 	info->read_byte_data = pmbus_read_byte_data;
