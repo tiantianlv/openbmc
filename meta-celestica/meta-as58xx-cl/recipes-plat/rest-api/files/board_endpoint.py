@@ -44,6 +44,10 @@ class boardApp_Handler:
     async def rest_fruid_hdl(self, request):
         return self.helper_rest_fruid(request)
 
+    # Handler for sys/fruid/status resource endpoint
+    async def rest_fruid_status_hdl(self, request):
+        return web.json_response(rest_fruid.get_fruid_status(), dumps=dumps_bytestr)
+
     # Handler for sys/fruid/psu resource endpoint
     async def rest_fruid_psu_hdl(self, request):
         return web.json_response(rest_fruid.get_fruid_psu(), dumps=dumps_bytestr)
