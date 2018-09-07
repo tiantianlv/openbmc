@@ -16,6 +16,37 @@ import re
 import subprocess
 import bmc_command
 
+def get_fruid_status():
+    result = []
+    fresult = []
+    proc = subprocess.Popen(['/usr/local/bin/fru-util status'],
+                            shell=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    try:
+        data, err = bmc_command.timed_communicate(proc)
+        data = data.decode()
+    except bmc_command.TimeoutError as ex:
+        data = ex.output
+        err = ex.error
+
+    for adata in data.split('\n\n'):
+        sresult = {}
+        for edata in adata.split('\n'):
+            tdata = edata.split(':')
+            if(len(tdata) < 2):
+                continue
+            sresult[tdata[0].strip()] = tdata[1]
+        result.append(sresult)
+
+    fresult = {
+                "Information": result,
+                "Actions": [],
+                "Resources": [],
+              }
+
+    return fresult
+
 def get_fruid_psu():
     result = []
     fresult = []
@@ -30,8 +61,14 @@ def get_fruid_psu():
         data = ex.output
         err = ex.error
 
-    for edata in data.split('\n'):
-        result.append(edata)
+    for adata in data.split('\n\n'):
+        sresult = {}
+        for edata in adata.split('\n'):
+            tdata = edata.split(':')
+            if(len(tdata) < 2):
+                continue
+            sresult[tdata[0].strip()] = tdata[1]
+        result.append(sresult)
 
     fresult = {
                 "Information": result,
@@ -57,8 +94,14 @@ def get_fruid_fan():
             data = ex.output
             err = ex.error
 
-        for edata in data.split('\n'):
-            result.append(edata)
+        for adata in data.split('\n\n'):
+            sresult = {}
+            for edata in adata.split('\n'):
+                tdata = edata.split(':')
+                if(len(tdata) < 2):
+                    continue
+                sresult[tdata[0].strip()] = tdata[1]
+            result.append(sresult)
 
     fresult = {
                 "Information": result,

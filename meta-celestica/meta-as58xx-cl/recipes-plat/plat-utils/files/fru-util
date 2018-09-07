@@ -228,7 +228,6 @@ fan_fru() {
 	ln -s /sys/bus/i2c/devices/i2c-${i2c_bus}/${i2c_bus}-00${i2c_addr}/eeprom  ${EEPROM_LINK_FILE}
 	shift
 	syseeprom $@
-	echo
 }
 
 lc_fru() {

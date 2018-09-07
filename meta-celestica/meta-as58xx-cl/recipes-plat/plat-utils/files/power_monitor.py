@@ -8,14 +8,14 @@ import syslog
 
 
 PSU_NUM = 2
-IR358X_NUM = 2
+IR358X_NUM = 5
 TEMP_NUM = 6
 MONITOR_POLL_TIME = (60 * 10) #10 mins
 MonitorItem = [
 ######sensors#######
-['PSU', 'dps1100-i2c-6-58', 'dps1100-i2c-6-59'], #PSU
-['IR358x', 'ir3584-i2c-4-70', 'ir3595-i2c-4-12'], #IR358x
-['Temp', 'tmp75-i2c-7-49', 'tmp75-i2c-7-4a', 'tmp75-i2c-7-4b', 'tmp75-i2c-7-4c', 'tmp75-i2c-7-4d', 'tmp75-i2c-7-4e'], #Temp
+['PSU', 'dps1100-i2c-24-58', 'dps1100-i2c-25-59'], #PSU
+['IR358x', 'ir38060-i2c-4-43', 'ir38062-i2c-4-49', 'ir3595-i2c-16-12', 'ir38060-i2c-17-47', 'ir3584-i2c-18-70'], #IR358x
+['Temp', 'tmp75-i2c-7-4a', 'tmp75-i2c-7-4b', 'tmp75-i2c-7-4c', 'tmp75-i2c-7-4d', 'tmp75-i2c-39-48', 'tmp75-i2c-39-49'], #Temp
 ]
 
 psu_obj = [0]*PSU_NUM
@@ -59,7 +59,10 @@ class Alarm_Data():
 		sys.stdout.flush()
 		recv = os.popen(cmd).read()
 		if recv != '':
-			self.value = float(recv)
+			if recv != 'NA':
+				self.value = float(recv)
+			else:
+				self.value = INITIAL_VALUE
 		else:
 			self.value = INITIAL_VALUE
 
@@ -188,7 +191,7 @@ class IR358x_Obj():
 class TEMP_Obj():
 	def __init__(self, name):
 		self.name = name
-		self.temp = Alarm_Data('Temp')
+		self.temp = Alarm_Data('temp')
 
 
 def psu_init(item):
