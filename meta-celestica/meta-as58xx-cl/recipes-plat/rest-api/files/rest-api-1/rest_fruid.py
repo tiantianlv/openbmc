@@ -61,8 +61,14 @@ def get_fruid_psu():
         data = ex.output
         err = ex.error
 
-    for edata in data.split('\n'):
-        result.append(edata)
+    for adata in data.split('\n\n'):
+        sresult = {}
+        for edata in adata.split('\n'):
+            tdata = edata.split(':')
+            if(len(tdata) < 2):
+                continue
+            sresult[tdata[0].strip()] = tdata[1]
+        result.append(sresult)
 
     fresult = {
                 "Information": result,
