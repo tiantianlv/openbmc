@@ -36,6 +36,7 @@ IMAGE_INSTALL += " \
   tlv-eeprom \
   fan-ctrl \
   peci-util \
+  e2fsprogs \
   "
 
 IMAGE_FEATURES += " \

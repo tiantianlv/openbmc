@@ -32,6 +32,7 @@ SRC_URI = "file://ast-functions \
            file://power_monitor.py \
            file://fru-util \
            file://come_power.sh \
+           file://mount_emmc.sh \
            file://COPYING \
           "
 
@@ -65,6 +66,11 @@ do_install() {
   update-rc.d -r ${D} setup_i2c.sh start 07 S .
   install -m 755 rsyslog_config.sh ${D}${sysconfdir}/init.d/rsyslog_config.sh
   update-rc.d -r ${D} rsyslog_config.sh start 61 S .
+
+  #mount EMMC
+  install -m 755 mount_emmc.sh ${D}${sysconfdir}/init.d/mount_emmc.sh
+  update-rc.d -r ${D} mount_emmc.sh start 80 S .
+
   install -m 755 power-on.sh ${D}${sysconfdir}/init.d/power-on.sh
   update-rc.d -r ${D} power-on.sh start 85 S .
 
