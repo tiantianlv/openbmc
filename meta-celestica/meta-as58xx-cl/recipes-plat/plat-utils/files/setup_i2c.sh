@@ -37,6 +37,7 @@ i2c_device_add 2 0x57 24c64  #SYS EEPROM
 # Bus 3
 
 # Bus 4
+i2c_device_add 4 0x35 max11617 #Max11617 ADC
 i2c_device_add 4 0x43 ir38060  #IR38060
 i2c_device_add 4 0x49 ir38062  #IR38062
 

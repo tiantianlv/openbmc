@@ -31,6 +31,7 @@ SRC_URI = "file://ast-functions \
            file://setup_sensors.sh \
            file://power_monitor.py \
            file://fru-util \
+           file://come_power.sh \
            file://COPYING \
           "
 
@@ -72,6 +73,7 @@ do_install() {
 
 
   install -m 0755 fru-util ${D}${localbindir}/fru-util
+  install -m 755 come_power.sh ${D}${localbindir}/come_power.sh
 }
 
 FILES_${PN} += "/usr/local ${sysconfdir}"
