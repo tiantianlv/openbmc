@@ -52,7 +52,7 @@ wedge_is_us_on() {
         return $default
 	elif [ $val -eq 15 ]; then
         return 0            # powered on
-    elif [ $val -eq 0 ]; then
+    elif [ $val -eq 8 ]; then
         return 1
 	else
 		echo -n "read value $val "
