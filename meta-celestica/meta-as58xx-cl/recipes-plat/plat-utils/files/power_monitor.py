@@ -59,7 +59,7 @@ class Alarm_Data():
 		sys.stdout.flush()
 		recv = os.popen(cmd).read()
 		if recv != '':
-			if recv != 'NA':
+			if recv.strip() != 'N/A':
 				self.value = float(recv)
 			else:
 				self.value = INITIAL_VALUE

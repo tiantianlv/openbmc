@@ -33,7 +33,7 @@
 #define FILE_SIZE_BYTES 300000
 #define MAX_BYTE 255
 #define BACKUP_LOG_FILE_COUNT_MAX 10
-#define BACKUP_LOG_DIR_PREFIX "/var/log"
+#define BACKUP_LOG_DIR_PREFIX "/mnt/emmc/sol_log" //"/var/log"
 
 typedef enum escMode {
   EOL,

@@ -29,7 +29,7 @@
 #include "pmbus.h"
 #include "i2c_dev_sysfs.h"
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #define IR358X_DEBUG(fmt, ...) do {                   \
