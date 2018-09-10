@@ -1,6 +1,6 @@
-From 3fbe697abd94c1c33bd64b36bee03e874bbb9ae6 Mon Sep 17 00:00:00 2001
+From 2338958e6b07f1d3a7468b465635b536da29ef3d Mon Sep 17 00:00:00 2001
 From: zmzhan <mzhan@celestica.com>
-Date: Wed, 5 Sep 2018 14:50:42 +0800
+Date: Mon, 10 Sep 2018 10:19:37 +0800
 Subject: [PATCH] Add Celestica Questone2 and AS58XX-CL projects
 
 ---
@@ -12,10 +12,9 @@ Subject: [PATCH] Add Celestica Questone2 and AS58XX-CL projects
  arch/arm/plat-aspeed/dev-spi-fb.c        | 56 ++++++++++++++++++++++++++++++--
  arch/arm/plat-aspeed/dev-uart.c          | 22 +++++++++++--
  drivers/hwmon/pmbus/pmbus_core.c         |  2 ++
- drivers/net/ethernet/faraday/ftgmac100.c | 13 ++++++--
+ drivers/net/ethernet/faraday/ftgmac100.c | 24 ++++++++++++--
  drivers/net/phy/broadcom.c               |  2 +-
- drivers/net/phy/mdio_bus.c               |  8 +++++
- 11 files changed, 176 insertions(+), 10 deletions(-)
+ 10 files changed, 178 insertions(+), 11 deletions(-)
  create mode 100644 arch/arm/plat-aspeed/dev-i2c-cel.c
 
 diff --git a/arch/arm/mach-aspeed/Kconfig b/arch/arm/mach-aspeed/Kconfig
@@ -141,7 +140,7 @@ index 0000000..6e9a705
 +  dev_i2c_add_pca954x(dev_i2c_pca954x_info, size_dev_i2c_pca954x_info);
 +}
 diff --git a/arch/arm/plat-aspeed/dev-sdhci.c b/arch/arm/plat-aspeed/dev-sdhci.c
-index ba5b165..344307c 100644
+index ba5b165..d6cdeb5 100644
 --- a/arch/arm/plat-aspeed/dev-sdhci.c
 +++ b/arch/arm/plat-aspeed/dev-sdhci.c
 @@ -30,6 +30,7 @@
@@ -334,7 +333,7 @@ index f8e7ce5..fef8a63 100644
  }
  
 diff --git a/drivers/net/ethernet/faraday/ftgmac100.c b/drivers/net/ethernet/faraday/ftgmac100.c
-index fdd0787..39c62f3 100644
+index fdd0787..0718ba2 100644
 --- a/drivers/net/ethernet/faraday/ftgmac100.c
 +++ b/drivers/net/ethernet/faraday/ftgmac100.c
 @@ -120,6 +120,9 @@ struct ftgmac100 {
@@ -360,7 +359,20 @@ index fdd0787..39c62f3 100644
    } else {
      lp->mezz_type = MEZZ_UNKNOWN;
      printk("NCSI error: Unknown Mezz Vendor!\n");
-@@ -3240,9 +3249,9 @@ static int ftgmac100_open(struct net_device *netdev)
+@@ -2970,8 +2979,11 @@ static int ftgmac100_mii_probe(struct ftgmac100 *priv)
+ 	/* search for connect PHY device */
+ 	for (i = 0; i < PHY_MAX_ADDR; i++) {
+ 		struct phy_device *tmp = priv->mii_bus->phy_map[i];
+-
++#if defined(CONFIG_AS58XX_CL)
++		if (tmp && (tmp->addr == 0x0d)) {
++#else
+ 		if (tmp) {
++#endif
+ 			phydev = tmp;
+ 			break;
+ 		}
+@@ -3240,9 +3252,9 @@ static int ftgmac100_open(struct net_device *netdev)
  #if defined(CONFIG_WEDGE) || defined(CONFIG_WEDGE100) || \
      defined(CONFIG_CMM) || defined (CONFIG_PWNEPTUNE) || \
      defined(CONFIG_MINIPACK) || defined (CONFIG_GALAXY100) || \
@@ -372,6 +384,19 @@ index fdd0787..39c62f3 100644
  	ftgmac100_start_hw(priv, 100);
  #elif defined(CONFIG_YAMP)
  	ftgmac100_start_hw(priv, 100);
+@@ -3504,6 +3516,12 @@ static int ftgmac100_probe(struct platform_device *pdev)
+ 		goto err_mii_probe;
+ 	}
+ 
++#if defined(CONFIG_AS58XX_CL)
++	ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x04, 0x01e1);
++	ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x1c, 0x8804);
++	ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x1c, 0xb4e3);
++	ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x1c, 0xb864);
++#endif
+ #endif
+ 
+ 	/* register network device */
 diff --git a/drivers/net/phy/broadcom.c b/drivers/net/phy/broadcom.c
 index 922cef6..ce75111 100644
 --- a/drivers/net/phy/broadcom.c
@@ -385,32 +410,6 @@ index 922cef6..ce75111 100644
  	/* disable GTXCLK Clock Delay */
  	phy_write(phydev, 0x1C, 0x8C00);
  	/* Disable RGMII RXD to RXC skew */
-diff --git a/drivers/net/phy/mdio_bus.c b/drivers/net/phy/mdio_bus.c
-index 095ef3f..afab6b2 100644
---- a/drivers/net/phy/mdio_bus.c
-+++ b/drivers/net/phy/mdio_bus.c
-@@ -271,6 +271,9 @@ int mdiobus_register(struct mii_bus *bus)
- 		bus->reset(bus);
- 
- 	for (i = 0; i < PHY_MAX_ADDR; i++) {
-+#if defined(CONFIG_AS58XX_CL)
-+		i = 0x0d; /*54616s phy addr*/
-+#endif
- 		if ((bus->phy_mask & (1 << i)) == 0) {
- 			struct phy_device *phydev;
- 
-@@ -279,6 +282,11 @@ int mdiobus_register(struct mii_bus *bus)
- 				err = PTR_ERR(phydev);
- 				goto error;
- 			}
-+#if defined(CONFIG_AS58XX_CL)
-+			if(phydev) {
-+				break;
-+			}
-+#endif
- 		}
- 	}
- 
 -- 
 2.7.4
 
