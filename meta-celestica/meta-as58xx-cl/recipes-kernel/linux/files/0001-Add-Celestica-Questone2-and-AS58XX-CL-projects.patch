@@ -1,6 +1,6 @@
-From 2338958e6b07f1d3a7468b465635b536da29ef3d Mon Sep 17 00:00:00 2001
+From a7af2a9a21e81702cd1087313d302106abecadaa Mon Sep 17 00:00:00 2001
 From: zmzhan <mzhan@celestica.com>
-Date: Mon, 10 Sep 2018 10:19:37 +0800
+Date: Mon, 10 Sep 2018 16:50:10 +0800
 Subject: [PATCH] Add Celestica Questone2 and AS58XX-CL projects
 
 ---
@@ -140,7 +140,7 @@ index 0000000..6e9a705
 +  dev_i2c_add_pca954x(dev_i2c_pca954x_info, size_dev_i2c_pca954x_info);
 +}
 diff --git a/arch/arm/plat-aspeed/dev-sdhci.c b/arch/arm/plat-aspeed/dev-sdhci.c
-index ba5b165..d6cdeb5 100644
+index ba5b165..344307c 100644
 --- a/arch/arm/plat-aspeed/dev-sdhci.c
 +++ b/arch/arm/plat-aspeed/dev-sdhci.c
 @@ -30,6 +30,7 @@
@@ -165,7 +165,7 @@ index ba5b165..d6cdeb5 100644
  #endif
  }
 diff --git a/arch/arm/plat-aspeed/dev-spi-fb.c b/arch/arm/plat-aspeed/dev-spi-fb.c
-index c155199..4aabe01 100644
+index c155199..f88aa68 100644
 --- a/arch/arm/plat-aspeed/dev-spi-fb.c
 +++ b/arch/arm/plat-aspeed/dev-spi-fb.c
 @@ -230,6 +230,38 @@ static struct mtd_partition ast_legacy_partitions[] = {
@@ -178,7 +178,7 @@ index c155199..4aabe01 100644
 +		.name       = "u-bootro",
 +		.offset     = 0,        /* From 0 */
 +		.size       = 0x60000,  /* Size 384K */
-+		.mask_flags = MTD_WRITEABLE,
++		//.mask_flags = MTD_WRITEABLE,
 +	}, {
 +		.name       = "envro",
 +		.offset     = MTDPART_OFS_APPEND,  /* From 384K */
