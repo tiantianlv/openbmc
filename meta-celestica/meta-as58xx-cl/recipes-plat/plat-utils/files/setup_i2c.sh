@@ -27,7 +27,7 @@ board_type=$(board_type)
 i2c_device_add 0 0x0d syscpld  #CPLD
 
 # Bus 1
-i2c_device_add 1 0x50 24c02  #CPU EEPROM
+i2c_device_add 1 0x50 24c32  #CPU EEPROM
 
 # Bus 2
 i2c_device_add 2 0x51 24c64  #Switch EEPROM
