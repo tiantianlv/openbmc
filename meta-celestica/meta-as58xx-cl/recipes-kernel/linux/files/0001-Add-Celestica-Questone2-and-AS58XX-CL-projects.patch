@@ -1,20 +1,20 @@
-From 2338958e6b07f1d3a7468b465635b536da29ef3d Mon Sep 17 00:00:00 2001
+From d304cbe5cc6f8c15053e4b79212e283d69c88e70 Mon Sep 17 00:00:00 2001
 From: zmzhan <mzhan@celestica.com>
-Date: Mon, 10 Sep 2018 10:19:37 +0800
+Date: Tue, 11 Sep 2018 11:21:12 +0800
 Subject: [PATCH] Add Celestica Questone2 and AS58XX-CL projects
 
 ---
- arch/arm/mach-aspeed/Kconfig             | 12 +++++++
- arch/arm/plat-aspeed/Makefile            | 10 ++++++
- arch/arm/plat-aspeed/dev-eth.c           |  5 +--
- arch/arm/plat-aspeed/dev-i2c-cel.c       | 49 ++++++++++++++++++++++++++++
- arch/arm/plat-aspeed/dev-sdhci.c         |  7 ++++
- arch/arm/plat-aspeed/dev-spi-fb.c        | 56 ++++++++++++++++++++++++++++++--
- arch/arm/plat-aspeed/dev-uart.c          | 22 +++++++++++--
- drivers/hwmon/pmbus/pmbus_core.c         |  2 ++
- drivers/net/ethernet/faraday/ftgmac100.c | 24 ++++++++++++--
+ arch/arm/mach-aspeed/Kconfig             | 12 +++++
+ arch/arm/plat-aspeed/Makefile            | 10 +++++
+ arch/arm/plat-aspeed/dev-eth.c           |  5 ++-
+ arch/arm/plat-aspeed/dev-i2c-cel.c       | 49 ++++++++++++++++++++
+ arch/arm/plat-aspeed/dev-sdhci.c         |  7 +++
+ arch/arm/plat-aspeed/dev-spi-fb.c        | 56 +++++++++++++++++++++--
+ arch/arm/plat-aspeed/dev-uart.c          | 22 ++++++++-
+ drivers/hwmon/pmbus/pmbus_core.c         |  2 +
+ drivers/net/ethernet/faraday/ftgmac100.c | 77 ++++++++++++++++++++++++++++++--
  drivers/net/phy/broadcom.c               |  2 +-
- 10 files changed, 178 insertions(+), 11 deletions(-)
+ 10 files changed, 231 insertions(+), 11 deletions(-)
  create mode 100644 arch/arm/plat-aspeed/dev-i2c-cel.c
 
 diff --git a/arch/arm/mach-aspeed/Kconfig b/arch/arm/mach-aspeed/Kconfig
@@ -140,7 +140,7 @@ index 0000000..6e9a705
 +  dev_i2c_add_pca954x(dev_i2c_pca954x_info, size_dev_i2c_pca954x_info);
 +}
 diff --git a/arch/arm/plat-aspeed/dev-sdhci.c b/arch/arm/plat-aspeed/dev-sdhci.c
-index ba5b165..d6cdeb5 100644
+index ba5b165..344307c 100644
 --- a/arch/arm/plat-aspeed/dev-sdhci.c
 +++ b/arch/arm/plat-aspeed/dev-sdhci.c
 @@ -30,6 +30,7 @@
@@ -165,7 +165,7 @@ index ba5b165..d6cdeb5 100644
  #endif
  }
 diff --git a/arch/arm/plat-aspeed/dev-spi-fb.c b/arch/arm/plat-aspeed/dev-spi-fb.c
-index c155199..4aabe01 100644
+index c155199..f88aa68 100644
 --- a/arch/arm/plat-aspeed/dev-spi-fb.c
 +++ b/arch/arm/plat-aspeed/dev-spi-fb.c
 @@ -230,6 +230,38 @@ static struct mtd_partition ast_legacy_partitions[] = {
@@ -178,7 +178,7 @@ index c155199..4aabe01 100644
 +		.name       = "u-bootro",
 +		.offset     = 0,        /* From 0 */
 +		.size       = 0x60000,  /* Size 384K */
-+		.mask_flags = MTD_WRITEABLE,
++		//.mask_flags = MTD_WRITEABLE,
 +	}, {
 +		.name       = "envro",
 +		.offset     = MTDPART_OFS_APPEND,  /* From 384K */
@@ -333,7 +333,7 @@ index f8e7ce5..fef8a63 100644
  }
  
 diff --git a/drivers/net/ethernet/faraday/ftgmac100.c b/drivers/net/ethernet/faraday/ftgmac100.c
-index fdd0787..0718ba2 100644
+index fdd0787..a3b6550 100644
 --- a/drivers/net/ethernet/faraday/ftgmac100.c
 +++ b/drivers/net/ethernet/faraday/ftgmac100.c
 @@ -120,6 +120,9 @@ struct ftgmac100 {
@@ -346,7 +346,18 @@ index fdd0787..0718ba2 100644
  	unsigned int  powerup_prep_host_id;
  	struct completion ncsi_complete;
  
-@@ -784,6 +787,12 @@ void Get_Version_ID (struct net_device * dev)
+@@ -128,6 +131,10 @@ struct ftgmac100 {
+ 	struct work_struct work_aen;       // work type for AEN
+ 	int aen_pid;  // pid of AEN handler
+ #endif
++#if defined(CONFIG_AS58XX_CL)
++	struct workqueue_struct *led_wq;
++	struct delayed_work led_dwq;
++#endif
+ };
+ 
+ #ifdef CONFIG_FTGMAC100_NCSI
+@@ -784,6 +791,12 @@ void Get_Version_ID (struct net_device * dev)
      lp->NCSI_Respond.Payload_Data[34] == 0x11 && lp->NCSI_Respond.Payload_Data[35] == 0x3D) {
      lp->mezz_type = MEZZ_BCM;
      printk("NCSI: Mezz Vendor = Broadcom\n");
@@ -359,7 +370,7 @@ index fdd0787..0718ba2 100644
    } else {
      lp->mezz_type = MEZZ_UNKNOWN;
      printk("NCSI error: Unknown Mezz Vendor!\n");
-@@ -2970,8 +2979,11 @@ static int ftgmac100_mii_probe(struct ftgmac100 *priv)
+@@ -2970,8 +2983,11 @@ static int ftgmac100_mii_probe(struct ftgmac100 *priv)
  	/* search for connect PHY device */
  	for (i = 0; i < PHY_MAX_ADDR; i++) {
  		struct phy_device *tmp = priv->mii_bus->phy_map[i];
@@ -372,7 +383,55 @@ index fdd0787..0718ba2 100644
  			phydev = tmp;
  			break;
  		}
-@@ -3240,9 +3252,9 @@ static int ftgmac100_open(struct net_device *netdev)
+@@ -3070,6 +3086,47 @@ static int ftgmac100_mdiobus_write(struct mii_bus *bus, int phy_addr,
+ }
+ #endif // #ifndef CONFIG_FTGMAC100_NCSI
+ 
++#if defined(CONFIG_AS58XX_CL)
++static void led_delay_worker(struct work_struct *work)
++{
++	int speed, val;
++	struct ftgmac100 *lp = container_of(work, struct ftgmac100, led_dwq);
++	struct workqueue_struct *wq = lp->led_wq;
++
++
++	val = ftgmac100_mdiobus_read(lp->mii_bus, 0x0e, 0x19); //read link speed
++	if(val < 0) {
++		return;
++	}
++	val = (val >> 8) & 0x07;
++	switch(val) {
++		case 0x1:
++		case 0x2:
++			speed = 10;
++			ftgmac100_mdiobus_write(lp->mii_bus, 0x0e, 0x1c, 0xb4fe);//10M LED
++			break;
++		case 0x3:
++		case 0x4:
++		case 0x5:
++			speed = 100;
++			ftgmac100_mdiobus_write(lp->mii_bus, 0x0e, 0x1c, 0xb4fe);//100M LED
++			break;
++		case 0x6:
++		case 0x7:
++			speed = 1000;
++			ftgmac100_mdiobus_write(lp->mii_bus, 0x0e, 0x1c, 0xb4ef);//1000M LED
++			break;
++		default:
++			speed = 0;
++			break;
++	}
++
++	queue_delayed_work(wq, work, HZ);
++	return;
++}
++#endif
++
++
+ /******************************************************************************
+  * struct ethtool_ops functions
+  *****************************************************************************/
+@@ -3240,9 +3297,9 @@ static int ftgmac100_open(struct net_device *netdev)
  #if defined(CONFIG_WEDGE) || defined(CONFIG_WEDGE100) || \
      defined(CONFIG_CMM) || defined (CONFIG_PWNEPTUNE) || \
      defined(CONFIG_MINIPACK) || defined (CONFIG_GALAXY100) || \
@@ -384,15 +443,23 @@ index fdd0787..0718ba2 100644
  	ftgmac100_start_hw(priv, 100);
  #elif defined(CONFIG_YAMP)
  	ftgmac100_start_hw(priv, 100);
-@@ -3504,6 +3516,12 @@ static int ftgmac100_probe(struct platform_device *pdev)
+@@ -3504,6 +3561,20 @@ static int ftgmac100_probe(struct platform_device *pdev)
  		goto err_mii_probe;
  	}
  
 +#if defined(CONFIG_AS58XX_CL)
 +	ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x04, 0x01e1);
-+	ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x1c, 0x8804);
-+	ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x1c, 0xb4e3);
-+	ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x1c, 0xb864);
++	//ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x1c, 0x8804);
++	//ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x1c, 0xb4e3);
++	//ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x1c, 0xb864);
++
++	priv->led_wq = create_workqueue("Led workqueue");
++	if (priv->led_wq == NULL) {
++		printk("ftgmac: error creating Led workqueue for %s", netdev->name);
++	} else {
++		INIT_DELAYED_WORK(&priv->led_dwq, led_delay_worker);
++		queue_delayed_work(priv->led_wq, &priv->led_dwq, HZ);
++	}
 +#endif
  #endif
  

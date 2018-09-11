@@ -8,13 +8,13 @@ import syslog
 
 
 PSU_NUM = 2
-IR358X_NUM = 5
+IR358X_NUM = 7
 TEMP_NUM = 6
 MONITOR_POLL_TIME = (60 * 10) #10 mins
 MonitorItem = [
 ######sensors#######
 ['PSU', 'dps1100-i2c-24-58', 'dps1100-i2c-25-59'], #PSU
-['IR358x', 'ir38060-i2c-4-43', 'ir38062-i2c-4-49', 'ir3595-i2c-16-12', 'ir38060-i2c-17-47', 'ir3584-i2c-18-70'], #IR358x
+['IR358x', 'ir38060-i2c-4-43', 'ir38062-i2c-4-49', 'ir3595-i2c-16-12', 'ir38060-i2c-17-47', 'ir3584-i2c-18-70', 'ir3584-i2c-4-15', 'ir3584-i2c-4-16'], #IR358x
 ['Temp', 'tmp75-i2c-7-4a', 'tmp75-i2c-7-4b', 'tmp75-i2c-7-4c', 'tmp75-i2c-7-4d', 'tmp75-i2c-39-48', 'tmp75-i2c-39-49'], #Temp
 ]
 
@@ -60,7 +60,7 @@ class Alarm_Data():
 		recv = os.popen(cmd).read()
 		if recv != '':
 			if recv.strip() != 'N/A':
-				self.value = float(recv)
+				self.value = recv.strip()
 			else:
 				self.value = INITIAL_VALUE
 		else:
@@ -74,7 +74,7 @@ class Alarm_Data():
 		sys.stdout.flush()
 		recv = os.popen(cmd).read()
 		if recv != '':
-			self.alarm_min = float(recv)
+			self.alarm_min = recv.strip()
 		else:
 			self.alarm_min = INITIAL_VALUE
 
@@ -83,7 +83,7 @@ class Alarm_Data():
 		sys.stdout.flush()
 		recv = os.popen(cmd).read()
 		if recv != '':
-			self.alarm_max = float(recv)
+			self.alarm_max = recv.strip()
 		else:
 			self.alarm_max = INITIAL_VALUE
 
@@ -96,7 +96,7 @@ class Alarm_Data():
 		sys.stdout.flush()
 		recv = os.popen(cmd).read()
 		if recv != '':
-			self.alarm_max = float(recv)
+			self.alarm_max = recv.strip()
 		else:
 			self.alarm_max = INITIAL_VALUE
 
@@ -105,7 +105,7 @@ class Alarm_Data():
 		sys.stdout.flush()
 		recv = os.popen(cmd).read()
 		if recv != '':
-			self.alarm_max_hyst = float(recv)
+			self.alarm_max_hyst = recv.strip()
 		else:
 			self.alarm_max_hyst = INITIAL_VALUE
 		syslog.syslog(self.alarm_name + ': (max: ' + str(self.alarm_max) + ', hyst: ' + str(self.alarm_max_hyst) + ')')
@@ -113,36 +113,41 @@ class Alarm_Data():
 	def get_power_threshold(self, strline):
 		self.alarm_min = VARIABLE_DISABLE
 		self.alarm_max_hyst = VARIABLE_DISABLE
-		#cmd = 'echo ' + strline + ' |  awk -F \'=\' \'{print $2}\' |awk -F \' \' \'{print $1}\''
 		cmd = 'val=$(echo \"' + strline + '\" |  awk -F \'=\' \'{print $2}\' |awk -F \' \' \'{print $1}\');echo ${val#+}'
 		sys.stdout.flush()
 		recv = os.popen(cmd).read()
 		if recv != '':
-			self.alarm_max = float(recv)
+			cmd = 'echo \"' + strline + '\" |  awk -F \'=\' \'{print $2}\' '
+			sys.stdout.flush()
+			s = os.popen(cmd).read()
+			if s.find('kW') >= 0:
+				self.alarm_max = ('%.2f' % (float(recv.strip()) * 1000))
+			else:
+				self.alarm_max = recv.strip()
 		else:
 			self.alarm_max = INITIAL_VALUE
 		syslog.syslog(self.alarm_name + ': (max: ' + str(self.alarm_max) + ')')
 
 
 	def check_valid(self):
-		if self.value == INITIAL_VALUE or self.alarm_min == INITIAL_VALUE or self.alarm_max == INITIAL_VALUE:
+		if float(self.value) == float(INITIAL_VALUE) or float(self.alarm_min) == float(INITIAL_VALUE) or float(self.alarm_max) == float(INITIAL_VALUE):
 			return -1 #error
 
-		if self.alarm_min == VARIABLE_DISABLE:
-			if self.value >= self.alarm_max:
+		if float(self.alarm_min) == float(VARIABLE_DISABLE):
+			if float(self.value) >= float(self.alarm_max):
 				return INVALID_VALUE
-			elif self.alarm_max_hyst != VARIABLE_DISABLE and self.value >= self.alarm_max_hyst:
-				return INVALID_VALUE
-			else:
-				return VALID_VALUE
-
-		if self.alarm_max == VARIABLE_DISABLE:
-			if self.value <= self.alarm_min:
+			elif float(self.alarm_max_hyst) != float(VARIABLE_DISABLE) and float(self.value) >= float(self.alarm_max_hyst):
 				return INVALID_VALUE
 			else:
 				return VALID_VALUE
 
-		if self.value <= self.alarm_min or self.value >= self.alarm_max:
+		if float(self.alarm_max) == float(VARIABLE_DISABLE):
+			if float(self.value) <= float(self.alarm_min):
+				return INVALID_VALUE
+			else:
+				return VALID_VALUE
+
+		if float(self.value) <= float(self.alarm_min) or float(self.value) >= float(self.alarm_max):
 			return INVALID_VALUE
 		else:
 			return VALID_VALUE

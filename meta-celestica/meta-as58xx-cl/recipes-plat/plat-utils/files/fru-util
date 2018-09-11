@@ -26,6 +26,7 @@ command=(
 "sys sys_fru"
 "fan fan_fru"
 "bmc bmc_fru"
+"come come_fru"
 "fb fb_fru"
 "lb lc_fru"
 )
@@ -41,6 +42,10 @@ SYSEEPROM_I2C_ADDR=57
 #BMC EEPROM
 BMCEEPROM_I2C_BUS=2
 BMCEEPROM_I2C_ADDR=53
+
+#COMe EEPROM
+COMEEEPROM_I2C_BUS=1
+COMEEEPROM_I2C_ADDR=50
 
 #FAN EEPROM
 #FAN Board EEPROM
@@ -189,6 +194,15 @@ bmc_fru() {
 		rm -rf ${EEPROM_LINK_FILE}
 	fi
 	ln -s /sys/bus/i2c/devices/i2c-${BMCEEPROM_I2C_BUS}/${BMCEEPROM_I2C_BUS}-00${BMCEEPROM_I2C_ADDR}/eeprom  ${EEPROM_LINK_FILE}
+	syseeprom $@
+}
+
+come_fru() {
+	echo "COMe FRU:"
+	if [ -L ${EEPROM_LINK_FILE} ]; then
+		rm -rf ${EEPROM_LINK_FILE}
+	fi
+	ln -s /sys/bus/i2c/devices/i2c-${COMEEEPROM_I2C_BUS}/${COMEEEPROM_I2C_BUS}-00${COMEEEPROM_I2C_ADDR}/eeprom  ${EEPROM_LINK_FILE}
 	syseeprom $@
 }
 

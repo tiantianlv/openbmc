@@ -78,10 +78,22 @@ set_value 16 12 curr1_min 0
 set_value 16 12 curr1_max 211700
 
 #IR3584
+set_value 18 70 vout_mode 0x18
 set_value 18 70 in0_min 3130
 set_value 18 70 in0_max 3470
 set_value 18 70 curr1_min 0
 set_value 18 70 curr1_max 31000
+
+set_value 4 15 in0_min 1600
+set_value 4 15 in0_max 1950
+set_value 4 15 curr1_min 0
+set_value 4 15 curr1_max 43000
+
+set_value 4 16 in0_min 1000
+set_value 4 16 in0_max 1100
+set_value 4 16 curr1_min 0
+set_value 4 16 curr1_max 14000
+
 
 #Fan1-4
 set_value 8 0d fan1_min 1000

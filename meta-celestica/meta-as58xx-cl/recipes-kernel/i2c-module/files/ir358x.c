@@ -82,6 +82,7 @@ struct ir358x_data_t {
 	int id;
 	i2c_dev_data_st dev_data;
 	struct ir358x_alarm_data alarm_data;
+	int vout_mode;
 };
 
 
@@ -92,6 +93,83 @@ static const struct i2c_device_id ir358x_id[] = {
 	{"ir38062", IR38062 },
 	{ }
 };
+
+static ssize_t ir358x_vout_mode_show(struct device *dev,
+                                    struct device_attribute *attr,
+                                    char *buf)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	i2c_dev_data_st *data = i2c_get_clientdata(client);
+	i2c_sysfs_attr_st *i2c_attr = TO_I2C_SYSFS_ATTR(attr);
+	const i2c_dev_attr_st *dev_attr = i2c_attr->isa_i2c_attr;
+	struct ir358x_data_t *ir358x_data = TO_IR358X_DATA(data);
+	int value = -1;
+	int result;
+	int count = 10;
+	int val;
+	int val_mask;
+
+	mutex_lock(&data->idd_lock);
+	while((value < 0 || value == 0xff) && count--) {
+	  value = i2c_smbus_read_byte_data(client, dev_attr->ida_reg);
+	}
+	mutex_unlock(&data->idd_lock);
+
+	if (value < 0) {
+	  /* error case */
+	  IR358X_DEBUG("I2C read error!\n");
+	  return -1;
+	}
+
+	val_mask = (1 << (dev_attr->ida_n_bits)) - 1;
+	val = (value >> dev_attr->ida_bit_offset) & val_mask;
+
+	if(val & 0x10) {
+		val &= 0x0f;
+		val = ~val + 1;
+		result = 0 - val;
+	} else {
+		result = val;
+	}
+
+	return scnprintf(buf, PAGE_SIZE, "%d\n", result);
+}
+
+static int ir358x_vout_mode_store(struct device *dev,
+        struct device_attribute *attr, const char *buf, size_t count)
+{
+	int rc;
+	int write_value = 0;
+	struct i2c_client *client = to_i2c_client(dev);
+	i2c_dev_data_st *data = i2c_get_clientdata(client);
+	i2c_sysfs_attr_st *i2c_attr = TO_I2C_SYSFS_ATTR(attr);
+	const i2c_dev_attr_st *dev_attr = i2c_attr->isa_i2c_attr;
+	struct ir358x_data_t *ir358x_data = TO_IR358X_DATA(data);
+	int val_mask;
+
+	if(!ir358x_data)
+		return -1;
+
+	if (buf == NULL) {
+		return -ENXIO;
+	}
+
+	rc = kstrtol(buf, 16, &write_value);
+	if (rc != 0)	{
+		return count;
+	}
+
+	val_mask = (1 << (dev_attr->ida_n_bits)) - 1;
+	write_value &= val_mask;
+
+	rc = i2c_smbus_write_byte_data(client, dev_attr->ida_reg, write_value);
+	if(rc < 0)
+		return -1;
+
+	ir358x_data->vout_mode = write_value;
+
+	return count;
+}
 
 
 static ssize_t ir358x_vout_show(struct device *dev,
@@ -118,10 +196,15 @@ static ssize_t ir358x_vout_show(struct device *dev,
 	  IR358X_DEBUG("I2C read error!\n");
 	  return -1;
 	}
-	if(ir358x_data->id == IR38060 || ir358x_data->id == IR38062
-		|| ir358x_data->id == IR3584)
+	if(ir358x_data->id == IR38060 || ir358x_data->id == IR38062) {
 		result = (value * 1000) / 256;
-	else
+	} else if(ir358x_data->id == IR3581 || ir358x_data->id == IR3584) {
+		if(ir358x_data->vout_mode != 0) {
+			result = ((value >> ir358x_data->vout_mode) * 1000);
+		} else {
+			result = (value * 1000) / 512;
+		}
+	} else
 		result = (value * 1000) / 512;
 	
 	return scnprintf(buf, PAGE_SIZE, "%d\n", result);
@@ -243,6 +326,13 @@ static int ir358x_alarm_store(struct device *dev,
 
 static const i2c_dev_attr_st ir358x_attr_table[] = {
 	{
+	  "vout_mode",
+	  NULL,
+	  ir358x_vout_mode_show,
+	  ir358x_vout_mode_store,
+	  0x20, 0, 5,
+	},
+	{
 	  "in0_input",
 	  NULL,
 	  ir358x_vout_show,
@@ -329,6 +419,7 @@ static int ir358x_probe(struct i2c_client *client,
 	if (!data)
 		return -ENOMEM;
 
+	data->vout_mode = 0;
 	data->id = id->driver_data;
 
 	return i2c_dev_sysfs_data_init(client, &data->dev_data, ir358x_attr_table, n_attrs);
