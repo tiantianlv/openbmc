@@ -67,7 +67,8 @@ i2c_device_add 16 0x12 ir3595  #IR3595
 #bus 17 channel 1
 i2c_device_add 17 0x47 ir38060  #IR38060
 #bus 18 channel 2
-i2c_device_add 18 0x70 ir3584  #IR3584
+i2c_device_add 18 0x70 ir3584  #IR3584 channel 0
+i2c_device_add 18 0x71 ir3584  #IR3584 channel 1
 #bus 19 channel 3
 #bus 20 channel 4
 #bus 21 channel 5

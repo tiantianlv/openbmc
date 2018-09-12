@@ -51,6 +51,9 @@
 #define SYSFS_WRITE 1
 
 
+#define VOUT_MODE_REG_ADDR 0x20
+#define VOUT_MODE_REG_BITS_MASK 0x1f
+
 enum chips {
 	IR3581 = 1,
 	IR3584,
@@ -94,6 +97,33 @@ static const struct i2c_device_id ir358x_id[] = {
 	{ }
 };
 
+static int get_vout_mode(struct i2c_client *client, int reg)
+{
+	int value = -1;
+	int count = 10;
+
+	while((value < 0 || value == 0xff) && count--) {
+	  value = i2c_smbus_read_byte_data(client, reg);
+	}
+
+	if (value < 0) {
+	  /* error case */
+	  IR358X_DEBUG("I2C read error!\n");
+	  return -1;
+	}
+
+	value &= VOUT_MODE_REG_BITS_MASK;
+
+	if(value & 0x10) {
+		value &= 0x1f;
+		value = (~value + 1) & 0x1f;
+		value = 0 - value;
+	}
+	IR358X_DEBUG("VOUT_MODE = %d\n", value);
+
+	return value;
+}
+
 static ssize_t ir358x_vout_mode_show(struct device *dev,
                                     struct device_attribute *attr,
                                     char *buf)
@@ -108,6 +138,10 @@ static ssize_t ir358x_vout_mode_show(struct device *dev,
 	int count = 10;
 	int val;
 	int val_mask;
+
+	if(ir358x_data->vout_mode != 0) {
+		return scnprintf(buf, PAGE_SIZE, "%d\n", ir358x_data->vout_mode);
+	}
 
 	mutex_lock(&data->idd_lock);
 	while((value < 0 || value == 0xff) && count--) {
@@ -125,8 +159,8 @@ static ssize_t ir358x_vout_mode_show(struct device *dev,
 	val = (value >> dev_attr->ida_bit_offset) & val_mask;
 
 	if(val & 0x10) {
-		val &= 0x0f;
-		val = ~val + 1;
+		val &= 0x1f;
+		val = (~val + 1) & 0x1f;
 		result = 0 - val;
 	} else {
 		result = val;
@@ -154,17 +188,10 @@ static int ir358x_vout_mode_store(struct device *dev,
 		return -ENXIO;
 	}
 
-	rc = kstrtol(buf, 16, &write_value);
+	rc = kstrtol(buf, 10, &write_value);
 	if (rc != 0)	{
 		return count;
 	}
-
-	val_mask = (1 << (dev_attr->ida_n_bits)) - 1;
-	write_value &= val_mask;
-
-	rc = i2c_smbus_write_byte_data(client, dev_attr->ida_reg, write_value);
-	if(rc < 0)
-		return -1;
 
 	ir358x_data->vout_mode = write_value;
 
@@ -199,11 +226,14 @@ static ssize_t ir358x_vout_show(struct device *dev,
 	if(ir358x_data->id == IR38060 || ir358x_data->id == IR38062) {
 		result = (value * 1000) / 256;
 	} else if(ir358x_data->id == IR3581 || ir358x_data->id == IR3584) {
-		if(ir358x_data->vout_mode != 0) {
-			result = ((value >> ir358x_data->vout_mode) * 1000);
-		} else {
-			result = (value * 1000) / 512;
+		if(ir358x_data->vout_mode == 0) {
+			ir358x_data->vout_mode = get_vout_mode(client, VOUT_MODE_REG_ADDR);
 		}
+
+		if(ir358x_data->vout_mode < 0)
+			result = ((value * 1000) >> (0 - ir358x_data->vout_mode));
+		else
+			result = ((value * 1000) << ir358x_data->vout_mode);
 	} else
 		result = (value * 1000) / 512;
 	
@@ -219,7 +249,9 @@ static ssize_t ir358x_iout_show(struct device *dev,
 	i2c_dev_data_st *data = i2c_get_clientdata(client);
 	i2c_sysfs_attr_st *i2c_attr = TO_I2C_SYSFS_ATTR(attr);
 	const i2c_dev_attr_st *dev_attr = i2c_attr->isa_i2c_attr;
+	struct ir358x_data_t *ir358x_data = TO_IR358X_DATA(data);
 	int value = -1;
+	int div = 0;
 	int result;
 	int count = 10;
 	
@@ -234,8 +266,23 @@ static ssize_t ir358x_iout_show(struct device *dev,
 	  IR358X_DEBUG("I2C read error!\n");
 	  return -1;
 	}
+
 	
-	result = ((value & 0x7ff) * 1000)/ 4;
+
+	if(ir358x_data->id == IR38060 || ir358x_data->id == IR38062) {
+		div = (value & 0xf800) >> 11;
+		if(div & 0x10) {
+			div &= 0x1f;
+			div = (~div + 1) & 0x1f;
+			div = 0 - div;
+		}
+		if(div < 0)
+			result = ((value & 0x7ff) * 1000) >> (0 - div);
+		else
+			result = ((value & 0x7ff) * 1000) << div;
+	} else {
+		result = ((value & 0x7ff) * 1000)/ 4;
+	}
 	
 	return scnprintf(buf, PAGE_SIZE, "%d\n", result);
 }
