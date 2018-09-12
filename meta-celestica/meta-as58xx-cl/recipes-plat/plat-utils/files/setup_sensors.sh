@@ -78,11 +78,15 @@ set_value 16 12 curr1_min 0
 set_value 16 12 curr1_max 211700
 
 #IR3584
-set_value 18 70 vout_mode 0x18
+set_value 18 70 vout_mode -8
 set_value 18 70 in0_min 3130
 set_value 18 70 in0_max 3470
 set_value 18 70 curr1_min 0
 set_value 18 70 curr1_max 31000
+set_value 18 71 in0_min 720
+set_value 18 71 in0_max 880
+set_value 18 71 curr1_min 0
+set_value 18 71 curr1_max 28000
 
 set_value 4 15 in0_min 1600
 set_value 4 15 in0_max 1950
