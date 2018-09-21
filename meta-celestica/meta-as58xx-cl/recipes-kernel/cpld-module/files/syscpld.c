@@ -656,7 +656,7 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  "Optical chip Temperature",
 	  sys_alarm_show,
 	  sys_alarm_store,
-	  0x7A, 0, 8,
+	  SYSCPLD_ALARM_NODE, 0, 8,
 	},
 	{
 	  "temp3_max",
