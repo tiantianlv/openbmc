@@ -1,3 +1,22 @@
+From 82b018a0afe04df077ffcae11d9af8139ddae421 Mon Sep 17 00:00:00 2001
+From: Xuth <tianhui@celestica.com>
+Date: Sat, 29 Sep 2018 05:21:53 -0400
+Subject: [PATCH] Add Celestica Questone2 and AS58XX-CL projects
+
+---
+ arch/arm/mach-aspeed/Kconfig             | 12 +++++
+ arch/arm/plat-aspeed/Makefile            | 10 ++++
+ arch/arm/plat-aspeed/dev-eth.c           |  5 +-
+ arch/arm/plat-aspeed/dev-i2c-cel.c       | 49 ++++++++++++++++++++
+ arch/arm/plat-aspeed/dev-sdhci.c         |  7 +++
+ arch/arm/plat-aspeed/dev-spi-fb.c        | 56 +++++++++++++++++++++--
+ arch/arm/plat-aspeed/dev-uart.c          | 22 ++++++++-
+ drivers/hwmon/pmbus/pmbus_core.c         |  2 +
+ drivers/net/ethernet/faraday/ftgmac100.c | 78 ++++++++++++++++++++++++++++++--
+ drivers/net/phy/broadcom.c               |  2 +-
+ 10 files changed, 232 insertions(+), 11 deletions(-)
+ create mode 100644 arch/arm/plat-aspeed/dev-i2c-cel.c
+
 diff --git a/arch/arm/mach-aspeed/Kconfig b/arch/arm/mach-aspeed/Kconfig
 index f37d9da..ebba36c 100644
 --- a/arch/arm/mach-aspeed/Kconfig
@@ -65,6 +84,61 @@ index 7e28d00..13f5f32 100644
  
  	ast_eth0_data.DF_support = !isRevA0;
  
+diff --git a/arch/arm/plat-aspeed/dev-i2c-cel.c b/arch/arm/plat-aspeed/dev-i2c-cel.c
+new file mode 100644
+index 0000000..6e9a705
+--- /dev/null
++++ b/arch/arm/plat-aspeed/dev-i2c-cel.c
+@@ -0,0 +1,49 @@
++/*
++ * dev-i2c-cel.c - i2c device definition for Celestical Project
++ *
++ * Copyright 2014-present Facebook. All Rights Reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/platform_device.h>
++
++#include <plat/devs.h>
++#include <plat/ast_i2c.h>
++#if defined(CONFIG_QUESTONE2)
++pca954x_info_st dev_i2c_pca954x_info[] = {
++  {-1, 8, 0x77},		/* 0 */
++};
++#elif defined(CONFIG_AS58XX_CL)
++pca954x_info_st dev_i2c_pca954x_info[] = {
++  {-1, 4, 0x77},		/* 0 */
++  {-1, 6, 0x77},		/* 1 */
++  {-1, 8, 0x77},		/* 2 */
++};
++#else
++pca954x_info_st dev_i2c_pca954x_info[] = {
++};
++#endif
++const int size_dev_i2c_pca954x_info =
++    sizeof(dev_i2c_pca954x_info) / sizeof(dev_i2c_pca954x_info[0]);
++
++extern void dev_i2c_add_pca954x(pca954x_info_st [],
++                                 const int n_dev_i2c_pca954x_info);
++
++void __init ast_add_device_i2c(void)
++{
++  ast_add_device_i2c_common();
++  dev_i2c_add_pca954x(dev_i2c_pca954x_info, size_dev_i2c_pca954x_info);
++}
 diff --git a/arch/arm/plat-aspeed/dev-sdhci.c b/arch/arm/plat-aspeed/dev-sdhci.c
 index ba5b165..344307c 100644
 --- a/arch/arm/plat-aspeed/dev-sdhci.c
@@ -259,7 +333,7 @@ index f8e7ce5..fef8a63 100644
  }
  
 diff --git a/drivers/net/ethernet/faraday/ftgmac100.c b/drivers/net/ethernet/faraday/ftgmac100.c
-index fdd0787..3d9b6e3 100644
+index fdd0787..bced998 100644
 --- a/drivers/net/ethernet/faraday/ftgmac100.c
 +++ b/drivers/net/ethernet/faraday/ftgmac100.c
 @@ -120,6 +120,9 @@ struct ftgmac100 {
@@ -345,7 +419,7 @@ index fdd0787..3d9b6e3 100644
 +			break;
 +		default:
 +			speed = 0;
-+			ftgmac100_mdiobus_write(lp->mii_bus, 0x0e, 0x1c, 0xb4ee);//No Link
++			ftgmac100_mdiobus_write(lp->mii_bus, 0x0e, 0x1c, 0xb4ee);//No link
 +			break;
 +	}
 +
@@ -404,3 +478,6 @@ index 6698743..ac189ff 100644
  	/* disable GTXCLK Clock Delay */
  	phy_write(phydev, 0x1C, 0x8C00);
  	/* Disable RGMII RXD to RXC skew */
+-- 
+2.7.4
+
