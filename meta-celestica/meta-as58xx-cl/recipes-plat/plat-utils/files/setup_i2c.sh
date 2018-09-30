@@ -80,7 +80,7 @@ i2c_device_add 18 0x71 ir3584  #IR3584 channel 1
 i2c_device_add 24 0x50 24c32 #PSU1 FRU
 i2c_device_add 24 0x58 24c32 #PSU1 PMBUS
 #bus 25 channel 1
-i2c_device_add 25 0x51 psu_fru #PSU2 FRU
+i2c_device_add 25 0x51 24c32 #PSU2 FRU
 i2c_device_add 25 0x59 dps1100 #PSU2 PMBUS
 #bus 26 channel 2
 #bus 27 channel 3
