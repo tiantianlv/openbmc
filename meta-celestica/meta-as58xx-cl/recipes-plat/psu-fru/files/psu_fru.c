@@ -26,7 +26,7 @@ dps1100fb dps1100_info = {
 
 void usage(void)
 {
-    printf("psu_info <eeprom_path>\n");
+    printf("psu_fru <eeprom_path>\n");
 }
 
 int main(int argc, char *argv[])
