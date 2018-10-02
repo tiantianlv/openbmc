@@ -67,7 +67,7 @@ def get_fruid_psu():
             tdata = edata.split(':')
             if(len(tdata) < 2):
                 continue
-            sresult[tdata[0].strip()] = tdata[1]
+            sresult[tdata[0].strip()] = tdata[1].strip()
         result.append(sresult)
 
     fresult = {

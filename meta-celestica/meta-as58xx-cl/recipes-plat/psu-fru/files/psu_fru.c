@@ -82,31 +82,31 @@ int dps1100_info_deinit(void)
 
 int dps1100_info_init(void)
 {
-    dps1100_info.mfr_id.data = (unsigned char *)malloc(dps1100_info.mfr_id.length);
+    dps1100_info.mfr_id.data = (unsigned char *)malloc(dps1100_info.mfr_id.length + 1);
     if(dps1100_info.mfr_id.data == NULL)
     {
         return -1;
     }
-    dps1100_info.product_name.data = (unsigned char *)malloc(dps1100_info.product_name.length);
+    dps1100_info.product_name.data = (unsigned char *)malloc(dps1100_info.product_name.length + 1);
     if(dps1100_info.mfr_id.data == NULL)
     {
         return -1;
     }
-    dps1100_info.serial_num.data = (unsigned char *)malloc(dps1100_info.serial_num.length);
+    dps1100_info.serial_num.data = (unsigned char *)malloc(dps1100_info.serial_num.length + 1);
     if(dps1100_info.mfr_id.data == NULL)
     {
         return -1;
     }
-    dps1100_info.product_ver.data = (unsigned char *)malloc(dps1100_info.product_ver.length);
+    dps1100_info.product_ver.data = (unsigned char *)malloc(dps1100_info.product_ver.length  + 1);
     if(dps1100_info.mfr_id.data == NULL)
     {
         return -1;
     }
     
-    memset(dps1100_info.mfr_id.data, 0, dps1100_info.mfr_id.length);
-    memset(dps1100_info.product_name.data, 0, dps1100_info.product_name.length);
-    memset(dps1100_info.serial_num.data, 0, dps1100_info.serial_num.length);
-    memset(dps1100_info.product_ver.data, 0, dps1100_info.product_ver.length);
+    memset(dps1100_info.mfr_id.data, 0, dps1100_info.mfr_id.length + 1);
+    memset(dps1100_info.product_name.data, 0, dps1100_info.product_name.length + 1);
+    memset(dps1100_info.serial_num.data, 0, dps1100_info.serial_num.length + 1);
+    memset(dps1100_info.product_ver.data, 0, dps1100_info.product_ver.length + 1);
     memset(buff, 0, sizeof(buff));
 
     return 0;

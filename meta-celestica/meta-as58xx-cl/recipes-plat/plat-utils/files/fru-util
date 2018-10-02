@@ -135,15 +135,15 @@ psu_info() {
 			echo "Present: Absent"
 			return 1
 		fi
-		echo $(psu_fru $(psu_eeprom_path 24 50))
+		echo -e "$(psu_fru $(psu_eeprom_path 24 50))"
 	elif [ "$1" == "2" ]; then
-		echo -e "\nPSU2 FRU:"
+		echo "PSU2 FRU:"
 		$(psu_present 2)
 		if [ $? -eq 0 ]; then
 			echo "Present: Absent"
 			return 1
 		fi
-		echo $(psu_fru $(psu_eeprom_path 25 51))
+		echo -e "$(psu_fru $(psu_eeprom_path 25 51))"
 	else
 		echo "Invalid PSU number"
 	fi
@@ -168,6 +168,7 @@ psu_fru_() {
 		case $opt in
 		a)
 			psu_info 1
+			echo
 			psu_info 2
 			;;
 		p)
@@ -250,6 +251,9 @@ show_psu_status() {
         echo "Present: Present"
     else
         echo "Present: Absent"
+        echo "Power Status: Not OK"
+        echo "AC Status: Not OK"
+		return 1
     fi
 
 	$(psu_power $1)
