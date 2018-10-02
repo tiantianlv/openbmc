@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
     }
     if(dps1100_info_init())
     {
+        dps1100_info_deinit();
         printf("Initializing error!\n");
         return 1;
     }

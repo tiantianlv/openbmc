@@ -97,6 +97,8 @@ def get_fruid_fan():
         for adata in data.split('\n\n'):
             sresult = []
             for edata in adata.split('\n'):
+                if len(edata) == 0:
+                    continue
                 sresult.append(edata)
             result.append(sresult)
 
@@ -123,6 +125,8 @@ def get_fruid_sys():
         err = ex.error
 
     for edata in data.split('\n'):
+        if len(edata) == 0:
+            continue
         result.append(edata)
 
     fresult = {
