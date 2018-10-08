@@ -91,6 +91,8 @@
 #define FAN_WDT_TIME_SYSFS "/sys/bus/i2c/devices/i2c-8/8-000d/wdt_time"
 #define PSU1_SHUTDOWN_SYSFS "/sys/bus/i2c/devices/i2c-24/24-0058/control/shutdown"
 #define PSU2_SHUTDOWN_SYSFS "/sys/bus/i2c/devices/i2c-25/25-0059/control/shutdown"
+#define PSU_SPEED_CTRL_NODE "fan1_cfg"
+#define PSU_SPEED_CTRL_ENABLE 0x90
 
 #define PID_CONFIG_PATH "/mnt/data/pid_config.ini"
 #define PID_FILE_LINE_MAX 100
@@ -368,8 +370,8 @@ static struct fan_info_stu_sysfs psu1_fan_info = {
   .prefix = "/sys/bus/i2c/devices/i2c-0/0-000d",
   .front_fan_prefix = "fan1_input",
   .rear_fan_prefix = "/sys/bus/i2c/devices/i2c-24/24-0058",
-  .pwm_prefix = "fan4_pwm",
-  .fan_led_prefix = "fan4_led",
+  .pwm_prefix = "fan1_pct",
+  .fan_led_prefix = "psu_led",
   .fan_present_prefix = "psu_l_present",
   //.present = 1,
   .failed = 0,
@@ -378,8 +380,8 @@ static struct fan_info_stu_sysfs psu2_fan_info = {
   .prefix = "/sys/bus/i2c/devices/i2c-0/0-000d",
   .front_fan_prefix = "fan1_input",
   .rear_fan_prefix = "/sys/bus/i2c/devices/i2c-25/25-0059",
-  .pwm_prefix = "fan4_pwm",
-  .fan_led_prefix = "fan4_led",
+  .pwm_prefix = "fan1_pct",
+  .fan_led_prefix = "psu_led",
   .fan_present_prefix = "psu_r_present",
   //.present = 1,
   .failed = 0,
@@ -615,23 +617,23 @@ struct rpm_to_pct_map rpm_rear_map[] = {{20, 6000},
                                         {95, 28350},
                                         {100, 28950}};
 
-struct rpm_to_pct_map psu_rpm_map[] = {{20, 2130},
-                                        {25, 3180},
-                                        {30, 3690},
-                                        {35, 4620},
-                                        {40, 5130},
-                                        {45, 6120},
-                                        {50, 7050},
-                                        {55, 7560},
-                                        {60, 8580},
-                                        {65, 9180},
-                                        {70, 10230},
-                                        {75, 11280},
-                                        {80, 11820},
-                                        {85, 12870},
-                                        {90, 13350},
-                                        {95, 14370},
-                                        {100, 14850}};
+struct rpm_to_pct_map psu_rpm_map[] = {{20, 8800},
+                                        {25, 8800},
+                                        {30, 8800},
+                                        {35, 8800},
+                                        {40, 8800},
+                                        {45, 9920},
+                                        {50, 11520},
+                                        {55, 13120},
+                                        {60, 14560},
+                                        {65, 16192},
+                                        {70, 17760},
+                                        {75, 19296},
+                                        {80, 20800},
+                                        {85, 21760},
+                                        {90, 23424},
+                                        {95, 24800},
+                                        {100, 26496}};
 
 #define FRONT_MAP_SIZE (sizeof(rpm_front_map) / sizeof(struct rpm_to_pct_map))
 #define REAR_MAP_SIZE (sizeof(rpm_rear_map) / sizeof(struct rpm_to_pct_map))
@@ -1102,6 +1104,7 @@ static int calculate_raising_fan_pwm(int temp)
 	} else  {
 		val =  policy->high_pwm;
 	}
+	syslog(LOG_DEBUG, "[zmzhan]%s: k1 = %d, k2 = %d, temp = %d, val=%d", __func__, policy->k1, policy->k2, temp, val);
 
 	return val;
 }
@@ -1267,6 +1270,8 @@ static int write_fan_speed(const int fan, const int value)
 /* Set up fan LEDs */
 static int write_fan_led(const int fan, const int color)
 {
+	if(fan >= TOTAL_FANS)
+		return 0; //not support write PSU LED
 	return write_fan_led_sysfs(fan, color);
 }
 
@@ -1278,15 +1283,14 @@ static int get_psu_pwm(void)
 	struct fantray_info_stu_sysfs *fantray;
 	struct fan_info_stu_sysfs *fan_info;
 
-
-
-	for(i = TOTAL_FANS; i < TOTAL_PSUS; i++) {
+	for(i = TOTAL_FANS; i < TOTAL_FANS + TOTAL_PSUS; i++) {
 		fantray = &fantray_info[i];
 		fan_info = &fantray->fan1;
 		
 		char fullpath[PATH_CACHE_SIZE];
 		
 		ret = fan_is_present_sysfs(i, fan_info);
+		//syslog(LOG_DEBUG, "[zmzhan]%s: fan_is_present_sysfs=%d", __func__, ret);
 		if(ret == 0) {
 			fantray->present = 0; //not preset
 			continue;
@@ -1299,15 +1303,20 @@ static int get_psu_pwm(void)
 		snprintf(fullpath, PATH_CACHE_SIZE, "%s/%s", fan_info->rear_fan_prefix, fan_info->pwm_prefix);
 		adjust_sysnode_path(fan_info->rear_fan_prefix, fan_info->pwm_prefix, fullpath, sizeof(fullpath));
 		read_sysfs_int(fullpath, &tmp);
+		//syslog(LOG_DEBUG, "[zmzhan]%s: path=%s, value= %d", __func__, fullpath, tmp);
+		if(tmp > 100)
+			tmp = 0;
 		if(tmp > pwm)
 			pwm = tmp;
 		usleep(11000);
 	}
 
+	pwm = pwm * 255 / 100;
+
 	return pwm;
 }
 /* Set PSU fan speed as a percentage */
-static int write_psu_fan_speed(const int fan, const int value)
+static int write_psu_fan_speed(const int fan, int value)
 {
 	int i;
 	int ret;
@@ -1315,14 +1324,13 @@ static int write_psu_fan_speed(const int fan, const int value)
 	struct fantray_info_stu_sysfs *fantray;
 	struct fan_info_stu_sysfs *fan_info;
 
-	//int unit;
 
-	//unit = value * PWM_UNIT_MAX / 100;
-	for(i = TOTAL_FANS; i < TOTAL_PSUS; i++) {
-		fantray = &fantray_info[fan];
+	value = value * 100 /255; //convert it to pct
+	for(i = TOTAL_FANS; i < TOTAL_FANS + TOTAL_PSUS; i++) {
+		fantray = &fantray_info[i];
 		fan_info = &fantray->fan1;
 		
-		ret = fan_is_present_sysfs(fan, fan_info);
+		ret = fan_is_present_sysfs(i, fan_info);
 		if(ret == 0) {
 			fantray->present = 0; //not preset
 			continue;
@@ -1331,9 +1339,16 @@ static int write_psu_fan_speed(const int fan, const int value)
 		} else {
 			continue;
 		}
-		
+		snprintf(fullpath, PATH_CACHE_SIZE, "%s/%s", fan_info->rear_fan_prefix, PSU_SPEED_CTRL_NODE);
+		adjust_sysnode_path(fan_info->rear_fan_prefix, PSU_SPEED_CTRL_NODE, fullpath, sizeof(fullpath));
+		ret = write_sysfs_int(fullpath, PSU_SPEED_CTRL_ENABLE);
+		if(ret < 0) {
+			syslog(LOG_ERR, "failed to enable control PSU speed");
+		}
+
 		snprintf(fullpath, PATH_CACHE_SIZE, "%s/%s", fan_info->rear_fan_prefix, fan_info->pwm_prefix);
 		adjust_sysnode_path(fan_info->rear_fan_prefix, fan_info->pwm_prefix, fullpath, sizeof(fullpath));
+		syslog(LOG_DEBUG, "[zmzhan]%s: fullpath=%s, value=%d", __func__, fullpath, value);
 		ret = write_sysfs_int(fullpath, value);
 		if(ret < 0) {
 			syslog(LOG_ERR, "failed to set fan %s/%s, value %#x",
@@ -1489,8 +1504,8 @@ int psu_speed_okay(const int fan, int speed, const int slop)
 	}
 
 	speed = speed * 100 / 255; //convert to pct
-	snprintf(buf, PATH_CACHE_SIZE, "%s/%s", fan_info->prefix, fan_info->front_fan_prefix);
-	adjust_sysnode_path(fan_info->prefix, fan_info->front_fan_prefix, buf, sizeof(buf));
+	snprintf(buf, PATH_CACHE_SIZE, "%s/%s", fan_info->rear_fan_prefix, fan_info->front_fan_prefix);
+	adjust_sysnode_path(fan_info->rear_fan_prefix, fan_info->front_fan_prefix, buf, sizeof(buf));
 	rc = read_sysfs_int(buf, &ret);
 	if(rc < 0) {
 		syslog(LOG_ERR, "failed to read module present %s node", fan_info->front_fan_prefix);
@@ -1734,7 +1749,7 @@ static int policy_init(void)
 	load_pid_config(tmp);
 	if(pid_using == 0) {
 		syslog(LOG_NOTICE, "PID configure: not using PID");
-		return 0;
+		//return 0;
 	}
 
 	policy->k1 = (policy->medium_pwm - policy->low_pwm) /
@@ -1965,7 +1980,7 @@ int main(int argc, char **argv) {
 				fan_bad[fan]++;
 			}
 		}
-		for(fan = TOTAL_FANS; fan < TOTAL_PSUS; fan++) {
+		for(fan = TOTAL_FANS; fan < TOTAL_FANS + TOTAL_PSUS; fan++) {
 			if (psu_speed_okay(fan, fan_speed, FAN_FAILURE_OFFSET)) {
 				if (fan_bad[fan] >= FAN_FAILURE_THRESHOLD) {
 					//write_fan_led(fan, FAN_LED_GREEN);
