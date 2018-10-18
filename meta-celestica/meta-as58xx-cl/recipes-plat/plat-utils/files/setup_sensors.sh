@@ -45,6 +45,7 @@ get_hwmon_id() {
 }
 
 board_type=$(board_type)
+echo -e "\n############### Setup sensors conf: ${board_type} ###############\n"
 if [ "$board_type" = "Phalanx" ]; then
 	mv /etc/sensors.d/phalanx.conf /etc/sensors.d/as58xx-cl.conf
 	rm /etc/sensors.d/fishbone.conf
@@ -54,52 +55,60 @@ else
 fi
 
 #func    bus addr node val
-#IR38060
-set_value 4 43 in0_min 950
-set_value 4 43 in0_max 1100
-set_value 4 43 curr1_min 0
-set_value 4 43 curr1_max 3000
-set_value 4 43 in0_label "XP1R0V_FPGA Voltage"
-set_value 4 43 curr1_label "XP1R0V_FPGA Current"
+if [ "$board_type" = "Fishbone" ]; then
+	#IR38060
+	set_value 4 43 in0_min 950
+	set_value 4 43 in0_max 1100
+	set_value 4 43 curr1_min 0
+	set_value 4 43 curr1_max 3000
+	set_value 4 43 in0_label "XP1R0V_FPGA Voltage"
+	set_value 4 43 curr1_label "XP1R0V_FPGA Current"
+fi
 
-set_value 17 47 in0_min 1160
-set_value 17 47 in0_max 1240
-set_value 17 47 curr1_min 0
-set_value 17 47 curr1_max 1700
-set_value 17 47 in0_label "XP1R2V Voltage"
-set_value 17 47 curr1_label "XP1R2V Current"
+if [ "$board_type" = "Fishbone" ]; then
+	set_value 17 47 in0_min 1160
+	set_value 17 47 in0_max 1240
+	set_value 17 47 curr1_min 0
+	set_value 17 47 curr1_max 1700
+	set_value 17 47 in0_label "XP1R2V Voltage"
+	set_value 17 47 curr1_label "XP1R2V Current"
+fi
 
-#IR38062
-set_value 4 49 in0_min 3130
-set_value 4 49 in0_max 3470
-set_value 4 49 curr1_min 0
-set_value 4 49 curr1_max 10000
-set_value 4 49 in0_label "XP3R3V Voltage"
-set_value 4 49 curr1_label "XP3R3V Current"
+if [ "$board_type" = "Fishbone" ]; then
+	#IR38062
+	set_value 4 49 in0_min 3130
+	set_value 4 49 in0_max 3470
+	set_value 4 49 curr1_min 0
+	set_value 4 49 curr1_max 10000
+	set_value 4 49 in0_label "XP3R3V Voltage"
+	set_value 4 49 curr1_label "XP3R3V Current"
+fi
 
-#IR3595
-set_value 16 12 in0_min 730
-set_value 16 12 in0_max 1020
-set_value 16 12 curr1_min 0
-set_value 16 12 curr1_max 211700
-set_value 16 12 in0_label "VDDCORE Voltage"
-set_value 16 12 curr1_label "VDDCORE Current"
+if [ "$board_type" = "Fishbone" ]; then
+	#IR3595
+	set_value 16 12 in0_min 730
+	set_value 16 12 in0_max 1020
+	set_value 16 12 curr1_min 0
+	set_value 16 12 curr1_max 211700
+	set_value 16 12 in0_label "VDDCORE Voltage"
+	set_value 16 12 curr1_label "VDDCORE Current"
 
-#IR3584
-set_value 18 70 vout_mode -8
-set_value 18 70 in0_min 3130
-set_value 18 70 in0_max 3470
-set_value 18 70 curr1_min 0
-set_value 18 70 curr1_max 31000
-set_value 18 70 in0_label "Switch_3V3 Voltage"
-set_value 18 70 curr1_label "Switch_3V3 Current"
+	#IR3584
+	set_value 18 70 vout_mode -8
+	set_value 18 70 in0_min 3130
+	set_value 18 70 in0_max 3470
+	set_value 18 70 curr1_min 0
+	set_value 18 70 curr1_max 31000
+	set_value 18 70 in0_label "Switch_3V3 Voltage"
+	set_value 18 70 curr1_label "Switch_3V3 Current"
 
-set_value 18 71 in0_min 720
-set_value 18 71 in0_max 880
-set_value 18 71 curr1_min 0
-set_value 18 71 curr1_max 28000
-set_value 18 71 in0_label "Switch_0V8 Voltage"
-set_value 18 71 curr1_label "Switch_0V8 Current"
+	set_value 18 71 in0_min 720
+	set_value 18 71 in0_max 880
+	set_value 18 71 curr1_min 0
+	set_value 18 71 curr1_max 28000
+	set_value 18 71 in0_label "Switch_0V8 Voltage"
+	set_value 18 71 curr1_label "Switch_0V8 Current"
+fi
 
 set_value 4 15 in0_min 1600
 set_value 4 15 in0_max 1950
