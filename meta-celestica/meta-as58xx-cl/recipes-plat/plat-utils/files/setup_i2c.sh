@@ -40,7 +40,7 @@ i2c_device_add 4 0x16 ir3584  #IR3584 in COMe
 i2c_device_add 4 0x35 max11617 #Max11617 ADC
 
 # Bus 5
-# i2c_device_add 5 0x36 fpga    #FPGA
+#i2c_device_add 5 0x36 fpga    #FPGA
 
 # Bus 6
 #PCA9548A
@@ -232,6 +232,8 @@ if [ "$board_type" = "Phalanx" ]; then
 	i2c_device_add 36 0x50 24c64 #Fan EEPROM
 fi
 
+#Initialize PCA9506 GPIOs
+setup_pca9506.sh
 
 # run sensors.config set command
 sensors -s
