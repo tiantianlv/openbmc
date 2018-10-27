@@ -45,7 +45,6 @@ get_hwmon_id() {
 }
 
 board_type=$(board_type)
-echo -e "\n############### Setup sensors conf: ${board_type} ###############\n"
 if [ "$board_type" = "Phalanx" ]; then
 	mv /etc/sensors.d/phalanx.conf /etc/sensors.d/as58xx-cl.conf
 	rm /etc/sensors.d/fishbone.conf
@@ -252,4 +251,11 @@ sleep 3
 
 #run power monitor
 echo "Start Power monitor"
+if [ "$board_type" = "Phalanx" ]; then
+	mv /usr/local/bin/power_monitor_phalanx.py /usr/local/bin/power_monitor.py
+	rm /usr/local/bin/power_monitor_fishbone.py
+else
+	mv /usr/local/bin/power_monitor_fishbone.py /usr/local/bin/power_monitor.py
+	rm /usr/local/bin/power_monitor_phalanx.py
+fi
 /usr/local/bin/power_monitor.py &
