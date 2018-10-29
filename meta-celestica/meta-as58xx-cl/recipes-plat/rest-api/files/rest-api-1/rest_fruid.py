@@ -98,7 +98,7 @@ def get_fruid_fan():
     elif not data.find('Phalanx'):
         fan_num = 5
 
-    for i in range(4):
+    for i in range(fan_num):
         cmd = '/usr/local/bin/fru-util fan ' + str(i + 1) 
         proc = subprocess.Popen([cmd],
                             shell=True,
