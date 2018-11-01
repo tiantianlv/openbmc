@@ -318,7 +318,7 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  0x11, 1, 1,
 	},
 	{
-	  "lc1_lm75_int",
+	  "lc1_lm75_int_status",
 	  "0x0: interrupt\n"
 	  "0x1: no interrupt",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
@@ -326,7 +326,7 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  0x11, 2, 1,
 	},
 	{
-	  "lc2_lm75_int",
+	  "lc2_lm75_int_status",
 	  "0x0: interrupt\n"
 	  "0x1: no interrupt",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
@@ -368,7 +368,7 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
  	{
 	  "sw_lm75_int_mask",
 	  "0x0: mask\n"
-	  "0x1: no mask",
+	  "0x1: not mask",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x13, 0, 1,
@@ -376,23 +376,23 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	{
 	  "lm75_cb_int1_n_mask",
 	  "0x0: mask\n"
-	  "0x1: no mask",
+	  "0x1: not mask",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x13, 1, 1,
 	},
 	{
-	  "lc1_lm75_int",
+	  "lc1_lm75_int_mask",
 	  "0x0: mask\n"
-	  "0x1: no mask",
+	  "0x1: not mask",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x13, 2, 1,
 	},
 	{
-	  "lc2_lm75_int",
+	  "lc2_lm75_int_mask",
 	  "0x0: mask\n"
-	  "0x1: no mask",
+	  "0x1: not mask",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x13, 3, 1,
@@ -400,7 +400,7 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	{
 	  "psu_lm75_int_mask",
 	  "0x0: mask\n"
-	  "0x1: no mask",
+	  "0x1: not mask",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x13, 4, 1,
@@ -408,7 +408,7 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	{
 	  "gbe_bmc_phy_int_mask",
 	  "0x0: mask\n"
-	  "0x1: no mask",
+	  "0x1: not mask",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x13, 5, 1,
@@ -416,7 +416,7 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	{
 	  "pca9506_int_mask",
 	  "0x0: mask\n"
-	  "0x1: no mask",
+	  "0x1: not mask",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x13, 6, 1,
@@ -424,7 +424,7 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
     {
 	  "phy_int_mask",
 	  "0x0: mask\n"
-	  "0x1: no mask",
+	  "0x1: not mask",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
 	  0x13, 7, 1,
