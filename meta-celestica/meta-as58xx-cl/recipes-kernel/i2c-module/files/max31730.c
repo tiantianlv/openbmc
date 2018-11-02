@@ -43,15 +43,15 @@ static const int frac_tab[4] = { 5000, 2500, 1250, 625 };
 static long register2floatvalue(unsigned char msb,unsigned char lsb)
 {
 	int sign = msb & 0x80 ? -1 : 1;
-	long fraction = 1 * 10000;
-	int exponent = (msb >> 1);
+	long fraction = 0;
+	int exponent = (msb & 0x7f) * 10000;
 	int i = 4;
 	for(; i < 8; i++)
 	{
 		fraction += (Get_Bit(lsb, i) ? frac_tab[7 - i] : 0);
 	}
-
-	return sign * fraction * exponent;
+    printf("[sign: %d][exponent: %d][frac: %d]\n",sign, exponent, fraction);
+	return sign * (fraction + exponent);
 }
 
 static ssize_t max31730_show(struct device *dev,
@@ -59,7 +59,7 @@ static ssize_t max31730_show(struct device *dev,
                                     char *buf)
 {
 	long value = 0;
-	unsigned char values[2];
+	unsigned char values[2] = { 0, 0 };
 	int ret_val;
 
 	ret_val = i2c_dev_read_nbytes(dev, attr, values, 2);
