@@ -50,7 +50,7 @@ static long register2floatvalue(unsigned char msb,unsigned char lsb)
 	{
 		fraction += (Get_Bit(lsb, i) ? frac_tab[7 - i] : 0);
 	}
-    printf("[sign: %d][exponent: %d][frac: %d]\n",sign, exponent, fraction);
+
 	return sign * (fraction + exponent);
 }
 
@@ -77,28 +77,28 @@ static const i2c_dev_attr_st max31730_attr_table[] = {
 	  "local temprature\n",
 	  max31730_show,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
-	  0x01, 0, 8,
+	  0x00, 0, 8,
 	},
 	{
 	  "remote_1_temp",
 	  "remote 1 temprature\n",
 	  max31730_show,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
-	  0x03, 0, 8,
+	  0x02, 0, 8,
 	},
 	{
 	  "remote_2_temp",
 	  "remote 2 temprature\n",
 	  max31730_show,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
-	  0x05, 0, 8,
+	  0x04, 0, 8,
 	},
 	{
 	  "remote_3_temp",
 	  "remote 3 temprature\n",
 	  max31730_show,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
-	  0x07, 0, 8,
+	  0x06, 0, 8,
 	},
 	{
 	  "highest_temp",
