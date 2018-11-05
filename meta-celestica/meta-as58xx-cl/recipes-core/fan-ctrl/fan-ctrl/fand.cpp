@@ -197,21 +197,6 @@ static int read_temp_directly_sysfs(struct sensor_info_sysfs *sensor);
 
 
 static struct sensor_info_sysfs sensor_inlet_u17_critical_info = {
-  .prefix = "/sys/bus/i2c/drivers/lm75/39-0048",
-  .suffix = "temp1_input",
-  .temp = 0,
-  .t1 = 0,
-  .t2 = 0,
-  .old_pwm = 0,
-  .setpoint = 0,
-  .p = 0,
-  .i = 0,
-  .d = 0,
-  .min_output = 0,
-  .read_sysfs = &read_temp_sysfs,
-};
-
-static struct sensor_info_sysfs sensor_inlet_u52_critical_info = {
   .prefix = "/sys/bus/i2c/drivers/lm75/39-0049",
   .suffix = "temp1_input",
   .temp = 0,
@@ -226,8 +211,23 @@ static struct sensor_info_sysfs sensor_inlet_u52_critical_info = {
   .read_sysfs = &read_temp_sysfs,
 };
 
+static struct sensor_info_sysfs sensor_inlet_u52_critical_info = {
+  .prefix = "/sys/bus/i2c/drivers/lm75/39-0048",
+  .suffix = "temp1_input",
+  .temp = 0,
+  .t1 = 0,
+  .t2 = 0,
+  .old_pwm = 0,
+  .setpoint = 0,
+  .p = 0,
+  .i = 0,
+  .d = 0,
+  .min_output = 0,
+  .read_sysfs = &read_temp_sysfs,
+};
+
 static struct sensor_info_sysfs sensor_bcm5870_board_u31_critical_info = {
-  .prefix = "/sys/bus/i2c/drivers/lm75/7-004c",
+  .prefix = "/sys/bus/i2c/drivers/lm75/7-004a",
   .suffix = "temp1_input",
   .temp = 0,
   .t1 = 0,
@@ -243,7 +243,7 @@ static struct sensor_info_sysfs sensor_bcm5870_board_u31_critical_info = {
 
 
 static struct sensor_info_sysfs sensor_inlet_u28_critical_info = {
-  .prefix = "/sys/bus/i2c/drivers/lm75/7-004b",
+  .prefix = "/sys/bus/i2c/drivers/lm75/7-004d",
   .suffix = "temp1_input",
   .temp = 0,
   .t1 = 0,
@@ -258,7 +258,7 @@ static struct sensor_info_sysfs sensor_inlet_u28_critical_info = {
 };
 
 static struct sensor_info_sysfs sensor_inlet_u29_critical_info = {
-  .prefix = "/sys/bus/i2c/drivers/lm75/7-004a",
+  .prefix = "/sys/bus/i2c/drivers/lm75/7-004c",
   .suffix = "temp1_input",
   .temp = 0,
   .t1 = 0,
@@ -273,7 +273,7 @@ static struct sensor_info_sysfs sensor_inlet_u29_critical_info = {
 };
 
 static struct sensor_info_sysfs sensor_bcm5870_board_u30_critical_info = {
-  .prefix = "/sys/bus/i2c/drivers/lm75/7-004d",
+  .prefix = "/sys/bus/i2c/drivers/lm75/7-004b",
   .suffix = "temp1_input",
   .temp = 0,
   .t1 = 0,
@@ -438,7 +438,7 @@ static struct board_info_stu_sysfs board_info[] = {
 	{
 		.name = "BCM56873_board",
 		.slot_id = FAN_DIR_B2F,
-		.correction = 20,
+		.correction = 15,
 		.lwarn = BAD_TEMP,
 		.hwarn = 91,
 		.warn_count = 0,
@@ -450,7 +450,7 @@ static struct board_info_stu_sysfs board_info[] = {
 	{
 		.name = "BCM56873_inlet",
 		.slot_id = FAN_DIR_B2F,
-		.correction = 20,
+		.correction = 6,
 		.lwarn = 105,
 		.hwarn = 110,
 		.warn_count = 0,
@@ -461,7 +461,7 @@ static struct board_info_stu_sysfs board_info[] = {
 	{
 		.name = "cpu_inlet",
 		.slot_id = FAN_DIR_B2F,
-		.correction = 20,
+		.correction = 0,
 		.lwarn = BAD_TEMP,
 		.hwarn = 77,
 		.warn_count = 0,
@@ -472,7 +472,7 @@ static struct board_info_stu_sysfs board_info[] = {
 	{
 		.name = "optical_inlet",
 		.slot_id = FAN_DIR_B2F,
-		.correction = 20,
+		.correction = 0,
 		.lwarn = BAD_TEMP,
 		.hwarn = 70,
 		.warn_count = 0,
@@ -508,7 +508,7 @@ static struct board_info_stu_sysfs board_info[] = {
 	{
 		.name = "BCM56873_board",
 		.slot_id = FAN_DIR_F2B,
-		.correction = 20,
+		.correction = 15,
 		.lwarn = BAD_TEMP,
 		.hwarn = 91,
 		.warn_count = 0,
@@ -531,7 +531,7 @@ static struct board_info_stu_sysfs board_info[] = {
 	{
 		.name = "cpu_inlet",
 		.slot_id = FAN_DIR_F2B,
-		.correction = 20,
+		.correction = 0,
 		.lwarn = BAD_TEMP,
 		.hwarn = 77,
 		.warn_count = 0,
@@ -542,7 +542,7 @@ static struct board_info_stu_sysfs board_info[] = {
 	{
 		.name = "optical_inlet",
 		.slot_id = FAN_DIR_F2B,
-		.correction = 20,
+		.correction = 0,
 		.lwarn = BAD_TEMP,
 		.hwarn = 70,
 		.warn_count = 0,
@@ -1200,6 +1200,7 @@ static int read_pid_max_temp(void)
 		if(info->critical && (info->flag & PID_CTRL_BIT)) {
 			temp = info->critical->read_sysfs(info->critical);
 			if(temp != -1) {
+				temp += info->correction;
 				info->critical->temp = temp;
 				if(info->critical->t1 == 0)
 					info->critical->t1 = temp;
@@ -1261,6 +1262,7 @@ static int alarm_temp_update(int *alarm)
 		if(info->alarm) {
 			temp = info->alarm->read_sysfs(info->alarm);
 			if(temp != -1) {
+				temp += info->correction;
 				info->alarm->temp = temp;
 				if(info->hwarn != BAD_TEMP && 
 					(temp >= info->hwarn || ((info->hwarn - temp <= ALARM_TEMP_THRESHOLD) && info->warn_count))) {
@@ -2193,13 +2195,13 @@ int main(int argc, char **argv) {
 					old_speed * 100 / FAN_MAX, fan_speed * 100 / FAN_MAX);
 			}
 			for (fan = 0; fan < TOTAL_FANS; fan++) {
-				if(alarm == 0)
+				if((alarm & HIGH_WARN_BIT) == 0)
 					write_fan_speed(fan, fan_speed);
 			}
 #ifdef CONFIG_PSU_FAN_CONTROL_INDEPENDENT
 			write_psu_fan_speed(fan, psu_fan_speed);
 #else
-			if(alarm == 0)
+			if((alarm & HIGH_WARN_BIT) == 0)
 				write_psu_fan_speed(fan, fan_speed);
 #endif
 		}
