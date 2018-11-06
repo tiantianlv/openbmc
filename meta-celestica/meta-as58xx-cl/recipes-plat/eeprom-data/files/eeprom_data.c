@@ -57,7 +57,10 @@ static int get_eeprom_data_format(eeprom_data *eeprom, const char *dev_name)
     if(!p_eeprom->data) return -1;
     for (device = ezxml_child(f1, "Device"); device; device = device->next) {
         if(strcmp(ezxml_attr(device, "Name"), dev_name)) continue;
-        p_eeprom->path = malloc(strlen(ezxml_attr(device, "Path")));
+        int len = strlen(ezxml_attr(device, "Path")) + 1;
+        p_eeprom->path = malloc(len);
+        if(p_eeprom->path == NULL) return -1;
+        memset(p_eeprom->path, 0, len);
         if(!strcmp(ezxml_attr(device, "SizeSystem"), "Hex")) {
             sscanf(ezxml_attr(device, "Size"), "%x", &p_eeprom->size);
         }
@@ -66,8 +69,10 @@ static int get_eeprom_data_format(eeprom_data *eeprom, const char *dev_name)
         }
         strcpy(p_eeprom->path, ezxml_attr(device, "Path"));
         for (dataitem = ezxml_child(device, "DataItem"); dataitem; ) {
-            p_eeprom_data_item->name = malloc(strlen(ezxml_attr(dataitem, "Name")));
-            memset(p_eeprom_data_item->name, 0, strlen(ezxml_attr(dataitem, "Name")));
+            len = strlen(ezxml_attr(dataitem, "Name")) + 1;
+            p_eeprom_data_item->name = malloc(len);
+            if(p_eeprom_data_item->name == NULL) return -1;
+            memset(p_eeprom_data_item->name, 0, len);
             strcpy(p_eeprom_data_item->name, ezxml_attr(dataitem, "Name"));
             if(!strcmp(ezxml_attr(dataitem, "OffsetSystem"), "Hex")) {
                 sscanf(ezxml_attr(dataitem, "Offset"), "%x", &p_eeprom_data_item->offset);
@@ -82,6 +87,7 @@ static int get_eeprom_data_format(eeprom_data *eeprom, const char *dev_name)
                 sscanf(ezxml_attr(dataitem, "Length"), "%d", &p_eeprom_data_item->length);
             }
             p_eeprom_data_item->data = malloc(p_eeprom_data_item->length + 1);
+            if(p_eeprom_data_item->data == NULL) return -1;
             memset(p_eeprom_data_item->data, 0, p_eeprom_data_item->length + 1);
             dataitem = dataitem->next;
             // printf("%s: Offset: %d Length: %d\n",p_eeprom->data->name, p_eeprom->data->offset, p_eeprom->data->length);
@@ -101,6 +107,7 @@ static int get_eeprom_data_format(eeprom_data *eeprom, const char *dev_name)
     //     printf("%s: Offset: 0x%x Length: %d\n",p_eeprom_data_item->name, p_eeprom_data_item->offset, p_eeprom_data_item->length);
     // }
     ezxml_free(f1);
+    if(p_eeprom->path == NULL) return -1;
     return 0;
 }
 
@@ -149,8 +156,10 @@ int main(int argc, const char *argv[])
     eeprom->path = NULL;
     // eeprom->next = NULL;
     
-    get_eeprom_data_format(eeprom, argv[1]);
-    get_eeprom_data(eeprom);
+    if(!get_eeprom_data_format(eeprom, argv[1]))
+    {
+        get_eeprom_data(eeprom);
+    }
     free_eeprom_data(eeprom);
 
     return 0;
