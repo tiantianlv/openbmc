@@ -348,12 +348,8 @@ echo "Start Power monitor"
 if [ "$board_type" = "Phalanx" ]; then
 	mv /usr/local/bin/power_monitor_phalanx.py /usr/local/bin/power_monitor.py
 	rm /usr/local/bin/power_monitor_fishbone.py
-	mv /etc/eeprom-data/phalanx.xml /etc/eeprom-data/eeprom.xml
-	rm /etc/eeprom-data/fishbone.xml
 else
 	mv /usr/local/bin/power_monitor_fishbone.py /usr/local/bin/power_monitor.py
 	rm /usr/local/bin/power_monitor_phalanx.py
-	mv /etc/eeprom-data/fishbone.xml /etc/eeprom-data/eeprom.xml
-	rm /etc/eeprom-data/phalanx.xml
 fi
 /usr/local/bin/power_monitor.py &

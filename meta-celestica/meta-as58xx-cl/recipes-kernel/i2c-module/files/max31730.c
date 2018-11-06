@@ -73,21 +73,21 @@ static ssize_t max31730_show(struct device *dev,
 
 static const i2c_dev_attr_st max31730_attr_table[] = {
 	{
-	  "local_temp",
+	  "temp1_input",
 	  "local temprature\n",
 	  max31730_show,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
 	  0x00, 0, 8,
 	},
 	{
-	  "remote_1_temp",
+	  "temp2_input",
 	  "remote 1 temprature\n",
 	  max31730_show,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
 	  0x02, 0, 8,
 	},
 	{
-	  "remote_2_temp",
+	  "temp3_input",
 	  "remote 2 temprature\n",
 	  max31730_show,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
