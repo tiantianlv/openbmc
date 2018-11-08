@@ -68,7 +68,7 @@
 #define ALARM_TEMP_THRESHOLD 3
 #define ALARM_START_REPORT 3
 
-#define CRITICAL_TEMP_HYST 5
+#define CRITICAL_TEMP_HYST 3
 
 #define REPORT_TEMP 720  /* Report temp every so many cycles */
 #define FAN_FAILURE_OFFSET 30
@@ -188,6 +188,7 @@ struct thermal_policy_t {
 	struct control_level_t level3;
 	struct control_level_t level4;
 	struct control_level_t level5;
+	struct control_level_t level6;
 	int pwm;
 	int old_pwm;
 };
@@ -439,7 +440,7 @@ static struct board_info_stu_sysfs board_info[] = {
 		.name = "BCM56873_board",
 		.slot_id = FAN_DIR_B2F,
 		.correction = 15,
-		.lwarn = BAD_TEMP,
+		.lwarn = 85,
 		.hwarn = 91,
 		.warn_count = 0,
 		.flag = SWITCH_SENSOR_BIT,
@@ -450,9 +451,9 @@ static struct board_info_stu_sysfs board_info[] = {
 	{
 		.name = "BCM56873_inlet",
 		.slot_id = FAN_DIR_B2F,
-		.correction = 6,
-		.lwarn = 105,
-		.hwarn = 110,
+		.correction = 17,
+		.lwarn = 98,
+		.hwarn = 104,
 		.warn_count = 0,
 		.flag = PID_CTRL_BIT,
 		.critical = &sensor_bcm5870_inlet_critical_info,
@@ -462,8 +463,8 @@ static struct board_info_stu_sysfs board_info[] = {
 		.name = "cpu_inlet",
 		.slot_id = FAN_DIR_B2F,
 		.correction = 0,
-		.lwarn = BAD_TEMP,
-		.hwarn = 77,
+		.lwarn = 96,
+		.hwarn = 100,
 		.warn_count = 0,
 		.flag = PID_CTRL_BIT,
 		.critical = &sensor_cpu_inlet_critical_info,
@@ -473,7 +474,7 @@ static struct board_info_stu_sysfs board_info[] = {
 		.name = "optical_inlet",
 		.slot_id = FAN_DIR_B2F,
 		.correction = 0,
-		.lwarn = BAD_TEMP,
+		.lwarn = 68,
 		.hwarn = 70,
 		.warn_count = 0,
 		.flag = PID_CTRL_BIT,
@@ -498,7 +499,7 @@ static struct board_info_stu_sysfs board_info[] = {
 		.name = "inlet_u29",
 		.slot_id = FAN_DIR_F2B,
 		.correction = -2,
-		.lwarn = 45,
+		.lwarn = BAD_TEMP,
 		.hwarn = BAD_TEMP,
 		.warn_count = 0,
 		.flag = 0,
@@ -509,7 +510,7 @@ static struct board_info_stu_sysfs board_info[] = {
 		.name = "BCM56873_board",
 		.slot_id = FAN_DIR_F2B,
 		.correction = 15,
-		.lwarn = BAD_TEMP,
+		.lwarn = 85,
 		.hwarn = 91,
 		.warn_count = 0,
 		.flag = SWITCH_SENSOR_BIT,
@@ -520,9 +521,9 @@ static struct board_info_stu_sysfs board_info[] = {
 	{
 		.name = "BCM56873_inlet",
 		.slot_id = FAN_DIR_F2B,
-		.correction = 6,
-		.lwarn = 105,
-		.hwarn = 110,
+		.correction = 17,
+		.lwarn = 98,
+		.hwarn = 104,
 		.warn_count = 0,
 		.flag = PID_CTRL_BIT,
 		.critical = &sensor_bcm5870_inlet_critical_info,
@@ -532,8 +533,8 @@ static struct board_info_stu_sysfs board_info[] = {
 		.name = "cpu_inlet",
 		.slot_id = FAN_DIR_F2B,
 		.correction = 0,
-		.lwarn = BAD_TEMP,
-		.hwarn = 77,
+		.lwarn = 96,
+		.hwarn = 100,
 		.warn_count = 0,
 		.flag = PID_CTRL_BIT,
 		.critical = &sensor_cpu_inlet_critical_info,
@@ -543,7 +544,7 @@ static struct board_info_stu_sysfs board_info[] = {
 		.name = "optical_inlet",
 		.slot_id = FAN_DIR_F2B,
 		.correction = 0,
-		.lwarn = BAD_TEMP,
+		.lwarn = 68,
 		.hwarn = 70,
 		.warn_count = 0,
 		.flag = PID_CTRL_BIT,
@@ -662,45 +663,53 @@ struct rpm_to_pct_map psu_rpm_map[] = {{20, 8800},
 
 static struct thermal_policy_t f2b_policy = {
 	.level1 = {
-		.temp = 20,
+		.temp = 0,
 		.pwm = 102,
 	},
 	.level2 = {
-		.temp = 25,
+		.temp = 20,
 		.pwm = 128,
 	},
 	.level3 = {
-		.temp = 30,
+		.temp = 25,
 		.pwm = 153,
 	},
 	.level4 = {
-		.temp = 35,
+		.temp = 30,
 		.pwm = 178,
 	},
 	.level5 = {
-		.temp = 40,
+		.temp = 35,
 		.pwm = 204,
+	},
+	.level6 = {
+		.temp = 40,
+		.pwm = 230,
 	},
 };
 
 static struct thermal_policy_t f2b_one_fail_policy = {
 	.level1 = {
-		.temp = 20,
-		.pwm = 127,
+		.temp = 0,
+		.pwm = 128,
 	},
 	.level2 = {
-		.temp = 25,
+		.temp = 20,
 		.pwm = 153,
 	},
 	.level3 = {
-		.temp = 30,
-		.pwm = 191,
+		.temp = 25,
+		.pwm = 179,
 	},
 	.level4 = {
-		.temp = 35,
-		.pwm = 217,
+		.temp = 30,
+		.pwm = 204,
 	},
 	.level5 = {
+		.temp = 35,
+		.pwm = 230,
+	},
+	.level6 = {
 		.temp = 40,
 		.pwm = 255,
 	},
@@ -709,45 +718,53 @@ static struct thermal_policy_t f2b_one_fail_policy = {
 
 static struct thermal_policy_t b2f_policy = {
 	.level1 = {
-		.temp = 20,
+		.temp = 0,
 		.pwm = 102,
 	},
 	.level2 = {
-		.temp = 25,
+		.temp = 20,
 		.pwm = 128,
 	},
 	.level3 = {
-		.temp = 30,
+		.temp = 25,
 		.pwm = 153,
 	},
 	.level4 = {
-		.temp = 35,
+		.temp = 30,
 		.pwm = 178,
 	},
 	.level5 = {
-		.temp = 40,
+		.temp = 35,
 		.pwm = 204,
+	},
+	.level6 = {
+		.temp = 40,
+		.pwm = 230,
 	},
 };
 
 static struct thermal_policy_t b2f_one_fail_policy = {
 	.level1 = {
-		.temp = 20,
-		.pwm = 127,
+		.temp = 0,
+		.pwm = 128,
 	},
 	.level2 = {
-		.temp = 25,
+		.temp = 20,
 		.pwm = 153,
 	},
 	.level3 = {
-		.temp = 30,
-		.pwm = 191,
+		.temp = 25,
+		.pwm = 179,
 	},
 	.level4 = {
-		.temp = 35,
-		.pwm = 217,
+		.temp = 30,
+		.pwm = 204,
 	},
 	.level5 = {
+		.temp = 35,
+		.pwm = 230,
+	},
+	.level6 = {
 		.temp = 40,
 		.pwm = 255,
 	},
@@ -756,47 +773,55 @@ static struct thermal_policy_t b2f_one_fail_policy = {
 
 static struct thermal_policy_t pid_f2b_policy = {
 	.level1 = {
-		.temp = 20,
+		.temp = 0,
 		.pwm = 102,
 	},
 	.level2 = {
-		.temp = 25,
+		.temp = 20,
 		.pwm = 128,
 	},
 	.level3 = {
-		.temp = 30,
+		.temp = 25,
 		.pwm = 153,
 	},
 	.level4 = {
-		.temp = 35,
+		.temp = 30,
 		.pwm = 178,
 	},
 	.level5 = {
-		.temp = 40,
+		.temp = 35,
 		.pwm = 204,
+	},
+	.level6 = {
+		.temp = 40,
+		.pwm = 230,
 	},
 };
 
 static struct thermal_policy_t pid_b2f_policy = {
 	.level1 = {
-		.temp = 20,
+		.temp = 0,
 		.pwm = 102,
 	},
 	.level2 = {
-		.temp = 25,
+		.temp = 20,
 		.pwm = 128,
 	},
 	.level3 = {
-		.temp = 30,
+		.temp = 25,
 		.pwm = 153,
 	},
 	.level4 = {
-		.temp = 35,
+		.temp = 30,
 		.pwm = 178,
 	},
 	.level5 = {
-		.temp = 40,
+		.temp = 35,
 		.pwm = 204,
+	},
+	.level6 = {
+		.temp = 40,
+		.pwm = 230,
 	},
 };
 
@@ -1311,7 +1336,9 @@ static int calculate_raising_fan_pwm(int temp)
 {
 	int val;
 
-	if(temp >= policy->level5.temp) {
+	if(temp >= policy->level6.temp) {
+		val = policy->level6.pwm;
+	} else if(temp >= policy->level5.temp) {
 		val = policy->level5.pwm;
 	} else if(temp >= policy->level4.temp) {
 		val = policy->level4.pwm;
@@ -1333,7 +1360,9 @@ static int calculate_falling_fan_pwm(int temp)
 {
 	int val;
 	
-	if(temp >= policy->level5.temp - CRITICAL_TEMP_HYST) {
+	if(temp >= policy->level6.temp - CRITICAL_TEMP_HYST) {
+		val = policy->level6.pwm;
+	}else if(temp >= policy->level5.temp - CRITICAL_TEMP_HYST) {
 		val = policy->level5.pwm;
 	} else if(temp >= policy->level4.temp - CRITICAL_TEMP_HYST) {
 		val = policy->level4.pwm;
@@ -2032,7 +2061,11 @@ static int get_switch_pwm(int old_pwm)
 			
 			if(sensor->old_pwm == 0)
 				sensor->old_pwm = old_pwm;
-			pwm = sensor->old_pwm + 2 * (sensor->temp - sensor->t1) + 1 * (sensor->temp - 95);
+
+			if(temp < 95)
+				pwm = 0;
+			else
+				pwm = sensor->old_pwm + 2 * (sensor->temp - sensor->t1) + 1 * (sensor->temp - 95);
 			syslog(LOG_DEBUG, "[zmzhan]%s: switch pwm=%d(old_pwm=%d, temp=%d, t1=%d)", __func__, pwm, sensor->old_pwm, sensor->temp, sensor->t1);
 			if(pwm < 0)
 				pwm = 0;
