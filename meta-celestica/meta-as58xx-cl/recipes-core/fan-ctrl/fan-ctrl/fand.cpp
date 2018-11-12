@@ -1694,10 +1694,12 @@ int fan_speed_okay(const int fan, int speed, const int slop)
 	usleep(11000);
 	if(front_speed < FAN_FAIL_RPM) {
 		if(fan_info->front_failed++ >= FAN_FAIL_COUNT) {
+			fan_info->front_failed = FAN_FAIL_COUNT;
 			syslog(LOG_WARNING, "%s front speed %d, less than %d ", fantray->name, front_speed, FAN_FAIL_RPM);
 		}
 	} else if(speed == FAN_MAX && (front_speed < (FAN_FRONTT_SPEED_MAX * (100 - slop) / 100))){
 		if(fan_info->front_failed++ >= FAN_FAIL_COUNT) {
+			fan_info->front_failed = FAN_FAIL_COUNT;
 			syslog(LOG_WARNING, "%s front speed %d, less than %d%% of max speed(%d)", 
 				fantray->name, front_speed, 100 - slop, speed);
 		}
@@ -1716,10 +1718,12 @@ int fan_speed_okay(const int fan, int speed, const int slop)
 	rear_speed = ret;
 	if(rear_speed < FAN_FAIL_RPM) {
 		if(fan_info->rear_failed++ >= FAN_FAIL_COUNT) {
+			fan_info->rear_failed = FAN_FAIL_COUNT;
 			syslog(LOG_WARNING, "%s rear speed %d, less than %d ", fantray->name, rear_speed, FAN_FAIL_RPM);
 		}
 	} else if(speed == FAN_MAX && (rear_speed < (FAN_REAR_SPEED_MAX * (100 - slop) / 100))){
 		if(fan_info->rear_failed++ >= FAN_FAIL_COUNT) {
+			fan_info->rear_failed = FAN_FAIL_COUNT;
 			syslog(LOG_WARNING, "%s rear speed %d, less than %d%% of max speed(%d)", 
 				fantray->name, rear_speed, 100 - slop, speed);
 		}
@@ -1848,7 +1852,8 @@ static int get_fan_direction(void)
 	/*add the code in later, now using default value F2B*/
 
 
-	return FAN_DIR_F2B;
+	//return FAN_DIR_F2B;
+	return FAN_DIR_B2F;
 }
 
 static int pid_inlet_control_parser(struct thermal_policy_t *policy, FILE *fp)
@@ -2085,7 +2090,7 @@ int main(int argc, char **argv) {
 	int raising_pwm;
 	int falling_pwm;
 	struct fantray_info_stu_sysfs *info;
-	int fan_speed = FAN_MEDIUM;
+	int fan_speed = 102;
 	int bad_reads = 0;
 	int fan_failure = 0;
 	int sub_failed = 0;
@@ -2314,6 +2319,7 @@ int main(int argc, char **argv) {
 			} else {
 				policy = &f2b_one_fail_policy;
 			}
+			syslog(LOG_DEBUG, "[zmzhan]%s: Change the policy: policy=%p(fail: b2f:%p, f2b:%p)", __func__, policy, &b2f_one_fail_policy, &f2b_one_fail_policy);
 		} else {
 			if(one_failed == 0 && (policy == &b2f_one_fail_policy || policy == &f2b_one_fail_policy)) {
 				if(direction == FAN_DIR_B2F) {
@@ -2321,6 +2327,7 @@ int main(int argc, char **argv) {
 				} else {
 					policy = &f2b_policy;
 				}
+				syslog(LOG_DEBUG, "[zmzhan]%s: Recovery policy: policy=%p(b2f:%p, f2b:%p)", __func__, policy, &b2f_policy, &f2b_policy);
 			}
 		}
 		if (fan_failure > 0) {
