@@ -49,6 +49,7 @@ IMAGE_INSTALL += " \
   ethtool \
   mdio-util \
   usb-console \
+  tcpdump \
   "
 
 IMAGE_FEATURES += " \
