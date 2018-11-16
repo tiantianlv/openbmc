@@ -48,6 +48,7 @@ IMAGE_INSTALL += " \
   me-util \
   ethtool \
   mdio-util \
+  usb-console \
   "
 
 IMAGE_FEATURES += " \
