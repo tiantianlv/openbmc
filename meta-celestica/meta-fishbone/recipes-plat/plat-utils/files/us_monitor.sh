@@ -91,11 +91,19 @@ psu_status_check() {
 }
 
 psu_status_init
-
+come_rest_status 1
+come_rst_st=$?
 while true; do
 	for((i = 0; i < $PSU_NUM; i++))
 	do
 		psu_status_check $i
 	done
+
+	come_rest_status
+	if [ $? -ne $come_rst_st ]; then
+		come_rest_status 2
+		come_rst_st=$?
+	fi
+
     usleep 500000
 done

@@ -256,6 +256,19 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  0x4, 6, 1,
 	},
 	{
+	  "come_rst_st",
+	  "0x11: power on reset\n"
+	  "0x22: software trigger CPU to warm reset\n"
+	  "0x33: software trigger CPU to cold reset\n"
+	  "0x44: CPU warm reset\n"
+	  "0x55: CPU cold reset\n"
+	  "0x66: watchdog reset\n"
+	  "0x77: power cycle",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  NULL,
+	  0x6, 0, 8,
+	},
+	{
 	  "usb_iso_en",
 	  "0x0: enable\n"
 	  "0x1: disable",
