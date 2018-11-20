@@ -28,6 +28,8 @@ intf="${IFACE}.${vlan}"
 slot=1
 
 vconfig add $IFACE $vlan
-ifconfig $intf up "fe80::${slot}:1/64"
+ifconfig $intf "fe80::${slot}:1/64"
+ip addr add 240.1.1.1/30 dev $intf
+ifconfig $intf up
 
 exit 0
