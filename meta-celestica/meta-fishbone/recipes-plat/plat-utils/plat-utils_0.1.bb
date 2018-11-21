@@ -33,7 +33,6 @@ SRC_URI = "file://ast-functions \
            file://fru-util \
            file://come_power.sh \
            file://mount_emmc.sh \
-           file://setup_pca9506.sh \
            file://us_monitor.sh \
            file://start_us_monitor.sh \
            file://COPYING \
@@ -84,7 +83,6 @@ do_install() {
   install -m 755 setup_sensors.sh ${D}${sysconfdir}/init.d/setup_sensors.sh
   update-rc.d -r ${D} setup_sensors.sh start 100 2 3 4 5 .
 
-  install -m 755 setup_pca9506.sh ${D}${localbindir}/setup_pca9506.sh
   install -m 0755 fru-util ${D}${localbindir}/fru-util
   install -m 755 come_power.sh ${D}${localbindir}/come_power.sh
 }

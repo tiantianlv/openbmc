@@ -29,9 +29,7 @@ SRC_URI = "file://eeprom_data.c \
         file://ezxml.h \
         file://Makefile \
         file://license.txt \
-        file://fishbone.xml \
-        file://phalanx.xml \
-        file://setup_eeprom_data.sh \
+        file://eeprom.xml \
           "
 S = "${WORKDIR}"
 pkgdir = "eeprom-data"
@@ -40,11 +38,8 @@ do_install() {
     install -d ${D}${bindir}
     install -m 0755 eeprom_data ${D}${bindir}/eeprom_data
     install -d ${D}${sysconfdir}/eeprom-data
-    install -m 644 fishbone.xml ${D}${sysconfdir}/eeprom-data/fishbone.xml
-    install -m 644 phalanx.xml ${D}${sysconfdir}/eeprom-data/phalanx.xml
+    install -m 644 eeprom.xml ${D}${sysconfdir}/eeprom-data/eeprom.xml
     install -d ${D}${sysconfdir}/init.d
-    install -m 755 setup_eeprom_data.sh ${D}${sysconfdir}/init.d/setup_eeprom_data.sh
-    update-rc.d -r ${D} setup_eeprom_data.sh start 85 S .
 }
 
 FILES_${PN} = "${bindir} ${pkgdir} ${sysconfdir}"

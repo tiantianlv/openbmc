@@ -20,7 +20,6 @@
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 . /usr/local/bin/openbmc-utils.sh
 
-board_type=$(board_type)
 #For Common I2C devices
 # Bus 0
 #For Fishbone I2C devices
