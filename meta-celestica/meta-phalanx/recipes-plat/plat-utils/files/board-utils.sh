@@ -13,6 +13,7 @@ BIOS_CHIPSELECTION="${SYSCPLD_SYSFS_DIR}/bios_cs"
 BIOS_CTRL="${SYSCPLD_SYSFS_DIR}/bios_ctrl"
 BIOS_BOOT_STATUS="${SYSCPLD_SYSFS_DIR}/bios_boot_ok"
 BIOS_BOOT_CHIP="${SYSCPLD_SYSFS_DIR}/bios_boot_cs"
+COME_RESET_STATUS_SYSFS="${SYSCPLD_SYSFS_DIR}/come_rst_st"
 
 wedge_power() {
 	if [ "$1" == "on" ]; then
@@ -298,4 +299,56 @@ sys_temp() {
 	((value=${3}*1000))
 	echo $value > $SYSCPLD_SYSFS_DIR/$file_prefix$file_suffix
 	return 0
+}
+
+come_rest_status() {
+	silent=0
+	ret=0
+	if [ $# -ge 1 ]; then
+		silent=$1
+	fi
+
+	val=$(cat $COME_RESET_STATUS_SYSFS 2> /dev/null | head -n 1)
+	case "$val" in
+		0x11)
+			info="Power on reset"
+	        ret=0 #0x11 powered on reset
+			;;
+		0x22)
+			info="Software trigger CPU to warm reset"
+	        ret=1 #0x22 Software trigger CPU warm reset
+			;;
+		0x33)
+			info="Software trigger CPU to cold reset"
+	        ret=2 #0x33 Software trigger CPU cold reset
+			;;
+		0x44)
+			info="CPU warm reset"
+	        ret=3 #0x44 CPU warm reset
+			;;
+		0x55)
+			info="CPU cold reset"
+	        ret=4 #0x55 CPU cold reset
+			;;
+		0x66)
+			info="Watchdog reset"
+	        ret=5 #0x66 CPU watchdog reset
+			;;
+		0x77)
+			info="CPU power cycle"
+	        ret=6 #0x77 CPU power cycle
+			;;
+		*)
+			info="Power on reset"
+			ret=0 #default power on reset
+			;;
+	esac
+
+	if [ $silent -eq 0 ]; then
+		echo "COMe reset status: $info"
+	elif [ $silent -eq 2 ]; then
+		logger "COMe reset status: $info"
+	fi
+
+	return $ret
 }
