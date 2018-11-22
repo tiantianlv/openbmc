@@ -48,7 +48,6 @@ extern "C" {
 #define FRU_TMP_PATH "/tmp/fruid_%s.bin"
 
 #define BOARD_TYPE_PATH "/sys/bus/i2c/devices/i2c-0/0-000d/hardware_version"
-#define FISHBONE  0x00
 #define PHALANX   0x03
 
 enum {

@@ -149,8 +149,6 @@ board_type() {
 	((val=$(i2cget -f -y 0 0x0d 0x02 2> /dev/null | head -n 1)))
 	if [ $val -eq '3' ]; then
 		echo 'Phalanx'
-	else
-		echo 'Fishbone'
 	fi
 }
 
@@ -261,11 +259,7 @@ sys_temp_usage(){
 }
 
 sys_temp_show() {
-	if [ $(board_type) = 'Fishbone' ]; then
-		sensors syscpld-i2c-0-0d
-	else
-		sensors syscpld_phalanx-i2c-0-0d
-	fi
+	sensors syscpld-i2c-0-0d
 }
 
 sys_temp() {

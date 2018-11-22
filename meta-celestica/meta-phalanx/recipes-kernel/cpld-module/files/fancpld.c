@@ -140,7 +140,7 @@ static ssize_t fan_rpm_show(struct device *dev,
 	}
 
 
-	return scnprintf(buf, PAGE_SIZE, "%d\n", value * 150);
+	return scnprintf(buf, PAGE_SIZE, "%d\n", value * 75);
 }
 
 static ssize_t fan_alarm_show(struct device *dev,

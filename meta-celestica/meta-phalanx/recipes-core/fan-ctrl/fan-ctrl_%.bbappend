@@ -24,6 +24,7 @@ SRC_URI += "file://get_fan_speed.sh \
             file://set_fan_speed.sh \
             file://setup-fan.sh \
             file://fand.cpp \
+            file://fand_v2.cpp \
             file://watchdog.cpp \
             file://watchdog.h \
             file://Makefile \
@@ -36,6 +37,7 @@ binfiles = "                                    \
     get_fan_speed.sh                            \
     set_fan_speed.sh                            \
     fand                                        \
+    fand_v2                                     \
     "
 
 

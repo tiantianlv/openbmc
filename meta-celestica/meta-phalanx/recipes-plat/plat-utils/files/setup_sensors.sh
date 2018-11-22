@@ -44,64 +44,7 @@ get_hwmon_id() {
 	echo 0
 }
 
-board_type=$(board_type)
-
 #func    bus addr node val
-if [ "$board_type" = "Fishbone" ]; then
-	#IR38060
-	set_value 4 43 in0_min 950
-	set_value 4 43 in0_max 1100
-	set_value 4 43 curr1_min 0
-	set_value 4 43 curr1_max 6000
-	set_value 4 43 in0_label "XP1R0V_FPGA Voltage"
-	set_value 4 43 curr1_label "XP1R0V_FPGA Current"
-fi
-
-if [ "$board_type" = "Fishbone" ]; then
-	set_value 17 47 in0_min 1160
-	set_value 17 47 in0_max 1240
-	set_value 17 47 curr1_min 0
-	set_value 17 47 curr1_max 6000
-	set_value 17 47 in0_label "XP1R2V Voltage"
-	set_value 17 47 curr1_label "XP1R2V Current"
-fi
-
-if [ "$board_type" = "Fishbone" ]; then
-	#IR38062
-	set_value 4 49 in0_min 3130
-	set_value 4 49 in0_max 3470
-	set_value 4 49 curr1_min 0
-	set_value 4 49 curr1_max 15000
-	set_value 4 49 in0_label "XP3R3V Voltage"
-	set_value 4 49 curr1_label "XP3R3V Current"
-fi
-
-if [ "$board_type" = "Fishbone" ]; then
-	#IR3595
-	set_value 16 12 in0_min 730
-	set_value 16 12 in0_max 1020
-	set_value 16 12 curr1_min 0
-	set_value 16 12 curr1_max 211700
-	set_value 16 12 in0_label "VDDCORE Voltage"
-	set_value 16 12 curr1_label "VDDCORE Current"
-
-	#IR3584
-	set_value 18 70 vout_mode -8
-	set_value 18 70 in0_min 3130
-	set_value 18 70 in0_max 3470
-	set_value 18 70 curr1_min 0
-	set_value 18 70 curr1_max 31000
-	set_value 18 70 in0_label "Switch_3V3 Voltage"
-	set_value 18 70 curr1_label "Switch_3V3 Current"
-
-	set_value 18 71 in0_min 720
-	set_value 18 71 in0_max 880
-	set_value 18 71 curr1_min 0
-	set_value 18 71 curr1_max 28000
-	set_value 18 71 in0_label "Switch_0V8 Voltage"
-	set_value 18 71 curr1_label "Switch_0V8 Current"
-fi
-
 set_value 4 15 in0_min 1600
 set_value 4 15 in0_max 1950
 set_value 4 15 curr1_min 0
@@ -116,162 +59,229 @@ set_value 4 16 curr1_max 14000
 set_value 4 16 in0_label "XP1R05V Voltage"
 set_value 4 16 curr1_label "XP1R05V Current"
 
+set_value 4 42 in0_label "XP3R3V Voltage"
+set_value 4 42 in0_max 3465
+set_value 4 42 in0_min 3135
+set_value 4 42 curr1_label "XP3R3V Current"
+set_value 4 42 curr1_max 6000
+set_value 4 42 curr1_min 0
 
-#Fan1-4
+set_value 7 4c temp1_max_hyst 90000
+set_value 7 4c temp1_max 110000
+set_value 7 4c temp2_max_hyst 90000
+set_value 7 4c temp2_max 110000
+set_value 7 4c temp3_max_hyst 90000
+set_value 7 4c temp3_max 110000
+
+#Fan1-5
 set_value 8 0d fan1_min 1000
-set_value 8 0d fan1_max 26000
+set_value 8 0d fan1_max 18000
 set_value 8 0d fan2_min 1000
-set_value 8 0d fan2_max 23000
+set_value 8 0d fan2_max 18000
 set_value 8 0d fan3_min 1000
-set_value 8 0d fan3_max 26000
+set_value 8 0d fan3_max 18000
 set_value 8 0d fan4_min 1000
-set_value 8 0d fan4_max 23000
+set_value 8 0d fan4_max 18000
 set_value 8 0d fan5_min 1000
-set_value 8 0d fan5_max 26000
+set_value 8 0d fan5_max 18000
 set_value 8 0d fan6_min 1000
-set_value 8 0d fan6_max 23000
+set_value 8 0d fan6_max 18000
 set_value 8 0d fan7_min 1000
-set_value 8 0d fan7_max 26000
+set_value 8 0d fan7_max 18000
 set_value 8 0d fan8_min 1000
-set_value 8 0d fan8_max 23000
+set_value 8 0d fan8_max 18000
+set_value 8 0d fan9_min 1000
+set_value 8 0d fan9_max 18000
+set_value 8 0d fan10_min 1000
+set_value 8 0d fan10_max 18000
+
+set_value 16 70 in0_label "Switch_0V8 Voltage"
+set_value 16 70 in0_max 840
+set_value 16 70 in0_min 760
+set_value 16 70 curr1_label "Switch_0V8 Current"
+set_value 16 70 curr1_max 75000
+set_value 16 70 curr1_min 0
+set_value 16 49 in0_label "Switch_1V2 Voltage"
+set_value 16 49 in0_max 1260
+set_value 16 49 in0_min 1140
+set_value 16 49 curr1_label "Switch_1V2 Current"
+set_value 16 49 curr1_max 6000
+set_value 16 49 curr1_min 0
+set_value 17 45 in0_label "Switch_1V0_FPGA Voltage"
+set_value 17 45 in0_max 1050
+set_value 17 45 in0_min 950
+set_value 17 45 curr1_label "Switch_1V0_FPGA Current"
+set_value 17 45 curr1_max 1500
+set_value 17 45 curr1_min 0
+set_value 17 49 in0_label "Switch_0V8 Voltage"
+set_value 17 49 in0_max 840
+set_value 17 49 in0_min 760
+set_value 17 49 curr1_label "Switch_0V8 Current"
+set_value 17 49 curr1_max 15000
+set_value 17 49 curr1_min 0
+set_value 19 30 in0_label "Line1_3V3 Voltage"
+set_value 19 30 in0_max 1732
+set_value 19 30 in0_min 1568
+set_value 19 30 curr1_label "Line1_3V3 Current"
+set_value 19 30 curr1_max 75000
+set_value 19 30 curr1_min 0
+set_value 19 50 in0_label "Line1_0V8_VDD_A Voltage"
+set_value 19 50 in0_max 840
+set_value 19 50 in0_min 760
+set_value 19 50 curr1_label "Line1_0V8_VDD_A Current"
+set_value 19 50 curr1_max 15000
+set_value 19 50 curr1_min 0
+set_value 19 70 in0_label "Line1_0V8_A Voltage"
+set_value 19 70 in0_max 840
+set_value 19 70 in0_min 760
+set_value 19 70 curr1_label "Line1_0V8_A Current"
+set_value 19 70 curr1_max 75000
+set_value 19 70 curr1_min 0
+set_value 20 50 in0_label "Line1_0V8_VDD_B Voltage"
+set_value 20 50 in0_max 840
+set_value 20 50 in0_min 760
+set_value 20 50 curr1_label "Line1_0V8_VDD_B Current"
+set_value 20 50 curr1_max 15000
+set_value 20 50 curr1_min 0
+set_value 20 70 in0_label "Line1_0V8_B Voltage"
+set_value 20 70 in0_max 840
+set_value 20 70 in0_min 760
+set_value 20 70 curr1_label "Line1_0V8_B Current"
+set_value 20 70 curr1_max 75000
+set_value 20 70 curr1_min 0
+set_value 20 45 in0_label "Line1_1V8 Voltage"
+set_value 20 45 in0_max 1890
+set_value 20 45 in0_min 1710
+set_value 20 45 curr1_label "Line1_1V8 Current"
+set_value 20 45 curr1_max 2000
+set_value 20 45 curr1_min 0
+set_value 21 30 in0_label "Line2_3V3 Voltage"
+set_value 21 30 in0_max 1732
+set_value 21 30 in0_min 1568
+set_value 21 30 curr1_label "Line2_3V3 Current"
+set_value 21 30 curr1_max 75000
+set_value 21 30 curr1_min 0
+set_value 21 50 in0_label "Line2_0V8_VDD_A Voltage"
+set_value 21 50 in0_max 840
+set_value 21 50 in0_min 760
+set_value 21 50 curr1_label "Line2_0V8_VDD_A Current"
+set_value 21 50 curr1_max 15000
+set_value 21 50 curr1_min 0
+set_value 21 70 in0_label "Line2_0V8_A Voltage"
+set_value 21 70 in0_max 840
+set_value 21 70 in0_min 760
+set_value 21 70 curr1_label "Line2_0V8_A Current"
+set_value 21 70 curr1_max 75000
+set_value 21 70 curr1_min 0
+set_value 22 50 in0_label "Line2_0V8_VDD_B Voltage"
+set_value 22 50 in0_max 840
+set_value 22 50 in0_min 760
+set_value 22 50 curr1_label "Line2_0V8_VDD_B Current"
+set_value 22 50 curr1_max 15000
+set_value 22 50 curr1_min 0
+set_value 22 70 in0_label "Line2_0V8_B Voltage"
+set_value 22 70 in0_max 840
+set_value 22 70 in0_min 760
+set_value 22 70 curr1_label "Line2_0V8_B Current"
+set_value 22 70 curr1_max 75000
+set_value 22 70 curr1_min 0
+set_value 22 45 in0_label "Line2_1V8 Voltage"
+set_value 22 45 in0_max 1890
+set_value 22 45 in0_min 1710
+set_value 22 45 curr1_label "Line2_1V8 Current"
+set_value 22 45 curr1_max 2000
+set_value 22 45 curr1_min 0
+set_value 23 45 in0_label "Switch_3V3_Early Voltage"
+set_value 23 45 in0_max 3465
+set_value 23 45 in0_min 3135
+set_value 23 45 curr1_label "Switch_3V3_Early Current"
+set_value 23 45 curr1_max 6000
+set_value 23 45 curr1_min 0
 
 #PSU1
 #add it to sensors.config
-if [ "$board_type" = "Fishbone" ]; then
-	val=$(get_hwmon_id 24 58 in1_min)
-	if [ "$val" -gt "0" ] ; then
-	set_hwmon_value 24 58 $val in1_min 90000
-	set_hwmon_value 24 58 $val in1_max 264000
-	set_hwmon_value 24 58 $val in2_min 11640
-	set_hwmon_value 24 58 $val in2_max 12360
-	set_hwmon_value 24 58 $val fan1_min 1000
-	set_hwmon_value 24 58 $val fan1_max 30000
-	set_hwmon_value 24 58 $val temp1_max_hyst 60000
-	set_hwmon_value 24 58 $val temp1_max 70000
-	set_hwmon_value 24 58 $val temp2_max_hyst 60000
-	set_hwmon_value 24 58 $val temp2_max 70000
-	set_hwmon_value 24 58 $val power1_max 1222000000
-	set_hwmon_value 24 58 $val power2_max 1100000000
-	set_hwmon_value 24 58 $val curr1_min 0
-	set_hwmon_value 24 58 $val curr1_max 7000
-	set_hwmon_value 24 58 $val curr2_min 0
-	set_hwmon_value 24 58 $val curr2_max 90000
-	fi
+val=$(get_hwmon_id 25 58 in1_min)
+if [ "$val" -gt "0" ] ; then
+	set_hwmon_value 25 58 $val in1_min 90000
+	set_hwmon_value 25 58 $val in1_max 264000
+	set_hwmon_value 25 58 $val in2_min 11640
+	set_hwmon_value 25 58 $val in2_max 12360
+	set_hwmon_value 25 58 $val fan1_min 1000
+	set_hwmon_value 25 58 $val fan1_max 30000
+	set_hwmon_value 25 58 $val temp1_max_hyst 60000
+	set_hwmon_value 25 58 $val temp1_max 70000
+	set_hwmon_value 25 58 $val temp2_max_hyst 60000
+	set_hwmon_value 25 58 $val temp2_max 70000
+	set_hwmon_value 25 58 $val power1_max 1222000000
+	set_hwmon_value 25 58 $val power2_max 1100000000
+	set_hwmon_value 25 58 $val curr1_min 0
+	set_hwmon_value 25 58 $val curr1_max 7000
+	set_hwmon_value 25 58 $val curr2_min 0
+	set_hwmon_value 25 58 $val curr2_max 90000
 fi
+
 #PSU2
 #add it to sensors.config
-if [ "$board_type" = "Fishbone" ]; then
-	val=$(get_hwmon_id 25 59 in1_min)
-	if [ "$val" -gt "0" ] ; then
-		set_hwmon_value 25 59 $val in1_min 90000
-		set_hwmon_value 25 59 $val in1_max 264000
-		set_hwmon_value 25 59 $val in2_min 11640
-		set_hwmon_value 25 59 $val in2_max 12360
-		set_hwmon_value 25 59 $val fan1_min 1000
-		set_hwmon_value 25 59 $val fan1_max 30000
-		set_hwmon_value 25 59 $val temp1_max_hyst 60000
-		set_hwmon_value 25 59 $val temp1_max 70000
-		set_hwmon_value 25 59 $val temp2_max_hyst 60000
-		set_hwmon_value 25 59 $val temp2_max 70000
-		set_hwmon_value 25 59 $val power1_max 1222000000
-		set_hwmon_value 25 59 $val power2_max 1100000000
-		set_hwmon_value 25 59 $val curr1_min 0
-		set_hwmon_value 25 59 $val curr1_max 7000
-		set_hwmon_value 25 59 $val curr2_min 0
-		set_hwmon_value 25 59 $val curr2_max 90000
-	fi
-fi
-#PSU1
-#add it to sensors.config
-if [ "$board_type" = "Phalanx" ]; then
-	val=$(get_hwmon_id 25 58 in1_min)
-	if [ "$val" -gt "0" ] ; then
-		set_hwmon_value 25 58 $val in1_min 90000
-		set_hwmon_value 25 58 $val in1_max 264000
-		set_hwmon_value 25 58 $val in2_min 11640
-		set_hwmon_value 25 58 $val in2_max 12360
-		set_hwmon_value 25 58 $val fan1_min 1000
-		set_hwmon_value 25 58 $val fan1_max 30000
-		set_hwmon_value 25 58 $val temp1_max_hyst 60000
-		set_hwmon_value 25 58 $val temp1_max 70000
-		set_hwmon_value 25 58 $val temp2_max_hyst 60000
-		set_hwmon_value 25 58 $val temp2_max 70000
-		set_hwmon_value 25 58 $val power1_max 1222000000
-		set_hwmon_value 25 58 $val power2_max 1100000000
-		set_hwmon_value 25 58 $val curr1_min 0
-		set_hwmon_value 25 58 $val curr1_max 7000
-		set_hwmon_value 25 58 $val curr2_min 0
-		set_hwmon_value 25 58 $val curr2_max 90000
-	fi
-fi
-#PSU2
-#add it to sensors.config
-if [ "$board_type" = "Phalanx" ]; then
-	val=$(get_hwmon_id 26 58 in1_min)
-	if [ "$val" -gt "0" ] ; then
-		set_hwmon_value 26 58 $val in1_min 90000
-		set_hwmon_value 26 58 $val in1_max 264000
-		set_hwmon_value 26 58 $val in2_min 11640
-		set_hwmon_value 26 58 $val in2_max 12360
-		set_hwmon_value 26 58 $val fan1_min 1000
-		set_hwmon_value 26 58 $val fan1_max 30000
-		set_hwmon_value 26 58 $val temp1_max_hyst 60000
-		set_hwmon_value 26 58 $val temp1_max 70000
-		set_hwmon_value 26 58 $val temp2_max_hyst 60000
-		set_hwmon_value 26 58 $val temp2_max 70000
-		set_hwmon_value 26 58 $val power1_max 1222000000
-		set_hwmon_value 26 58 $val power2_max 1100000000
-		set_hwmon_value 26 58 $val curr1_min 0
-		set_hwmon_value 26 58 $val curr1_max 7000
-		set_hwmon_value 26 58 $val curr2_min 0
-		set_hwmon_value 26 58 $val curr2_max 90000
-	fi
+val=$(get_hwmon_id 26 58 in1_min)
+if [ "$val" -gt "0" ] ; then
+	set_hwmon_value 26 58 $val in1_min 90000
+	set_hwmon_value 26 58 $val in1_max 264000
+	set_hwmon_value 26 58 $val in2_min 11640
+	set_hwmon_value 26 58 $val in2_max 12360
+	set_hwmon_value 26 58 $val fan1_min 1000
+	set_hwmon_value 26 58 $val fan1_max 30000
+	set_hwmon_value 26 58 $val temp1_max_hyst 60000
+	set_hwmon_value 26 58 $val temp1_max 70000
+	set_hwmon_value 26 58 $val temp2_max_hyst 60000
+	set_hwmon_value 26 58 $val temp2_max 70000
+	set_hwmon_value 26 58 $val power1_max 1222000000
+	set_hwmon_value 26 58 $val power2_max 1100000000
+	set_hwmon_value 26 58 $val curr1_min 0
+	set_hwmon_value 26 58 $val curr1_max 7000
+	set_hwmon_value 26 58 $val curr2_min 0
+	set_hwmon_value 26 58 $val curr2_max 90000
 fi
 #PSU3
 #add it to sensors.config
-if [ "$board_type" = "Phalanx" ]; then
-	val=$(get_hwmon_id 28 58 in1_min)
-	if [ "$val" -gt "0" ] ; then
-		set_hwmon_value 28 58 $val in1_min 90000
-		set_hwmon_value 28 58 $val in1_max 264000
-		set_hwmon_value 28 58 $val in2_min 11640
-		set_hwmon_value 28 58 $val in2_max 12360
-		set_hwmon_value 28 58 $val fan1_min 1000
-		set_hwmon_value 28 58 $val fan1_max 30000
-		set_hwmon_value 28 58 $val temp1_max_hyst 60000
-		set_hwmon_value 28 58 $val temp1_max 70000
-		set_hwmon_value 28 58 $val temp2_max_hyst 60000
-		set_hwmon_value 28 58 $val temp2_max 70000
-		set_hwmon_value 28 58 $val power1_max 1222000000
-		set_hwmon_value 28 58 $val power2_max 1100000000
-		set_hwmon_value 28 58 $val curr1_min 0
-		set_hwmon_value 28 58 $val curr1_max 7000
-		set_hwmon_value 28 58 $val curr2_min 0
-		set_hwmon_value 28 58 $val curr2_max 90000
-	fi
+val=$(get_hwmon_id 28 58 in1_min)
+if [ "$val" -gt "0" ] ; then
+	set_hwmon_value 28 58 $val in1_min 90000
+	set_hwmon_value 28 58 $val in1_max 264000
+	set_hwmon_value 28 58 $val in2_min 11640
+	set_hwmon_value 28 58 $val in2_max 12360
+	set_hwmon_value 28 58 $val fan1_min 1000
+	set_hwmon_value 28 58 $val fan1_max 30000
+	set_hwmon_value 28 58 $val temp1_max_hyst 60000
+	set_hwmon_value 28 58 $val temp1_max 70000
+	set_hwmon_value 28 58 $val temp2_max_hyst 60000
+	set_hwmon_value 28 58 $val temp2_max 70000
+	set_hwmon_value 28 58 $val power1_max 1222000000
+	set_hwmon_value 28 58 $val power2_max 1100000000
+	set_hwmon_value 28 58 $val curr1_min 0
+	set_hwmon_value 28 58 $val curr1_max 7000
+	set_hwmon_value 28 58 $val curr2_min 0
+	set_hwmon_value 28 58 $val curr2_max 90000
 fi
 #PSU4
 #add it to sensors.config
-if [ "$board_type" = "Phalanx" ]; then
-	val=$(get_hwmon_id 29 58 in1_min)
-	if [ "$val" -gt "0" ] ; then
-		set_hwmon_value 29 58 $val in1_min 90000
-		set_hwmon_value 29 58 $val in1_max 264000
-		set_hwmon_value 29 58 $val in2_min 11640
-		set_hwmon_value 29 58 $val in2_max 12360
-		set_hwmon_value 29 58 $val fan1_min 1000
-		set_hwmon_value 29 58 $val fan1_max 30000
-		set_hwmon_value 29 58 $val temp1_max_hyst 60000
-		set_hwmon_value 29 58 $val temp1_max 70000
-		set_hwmon_value 29 58 $val temp2_max_hyst 60000
-		set_hwmon_value 29 58 $val temp2_max 70000
-		set_hwmon_value 29 58 $val power1_max 1222000000
-		set_hwmon_value 29 58 $val power2_max 1100000000
-		set_hwmon_value 29 58 $val curr1_min 0
-		set_hwmon_value 29 58 $val curr1_max 7000
-		set_hwmon_value 29 58 $val curr2_min 0
-		set_hwmon_value 29 58 $val curr2_max 90000
-	fi
+val=$(get_hwmon_id 29 58 in1_min)
+if [ "$val" -gt "0" ] ; then
+	set_hwmon_value 29 58 $val in1_min 90000
+	set_hwmon_value 29 58 $val in1_max 264000
+	set_hwmon_value 29 58 $val in2_min 11640
+	set_hwmon_value 29 58 $val in2_max 12360
+	set_hwmon_value 29 58 $val fan1_min 1000
+	set_hwmon_value 29 58 $val fan1_max 30000
+	set_hwmon_value 29 58 $val temp1_max_hyst 60000
+	set_hwmon_value 29 58 $val temp1_max 70000
+	set_hwmon_value 29 58 $val temp2_max_hyst 60000
+	set_hwmon_value 29 58 $val temp2_max 70000
+	set_hwmon_value 29 58 $val power1_max 1222000000
+	set_hwmon_value 29 58 $val power2_max 1100000000
+	set_hwmon_value 29 58 $val curr1_min 0
+	set_hwmon_value 29 58 $val curr1_max 7000
+	set_hwmon_value 29 58 $val curr2_min 0
+	set_hwmon_value 29 58 $val curr2_max 90000
 fi
 
 #temp
@@ -286,122 +296,6 @@ if [ "$val" -gt "0" ] ; then
 	set_hwmon_value 39 49 $val temp1_max_hyst 60000
 fi
 
-if [ "$board_type" = "Phalanx" ]; then
-	set_value 8 0d fan9_min 1000
-	set_value 8 0d fan9_max 26000
-	set_value 8 0d fan10_min 1000
-	set_value 8 0d fan10_max 23000
-
-	set_value 4 42 in0_label "XP3R3V Voltage"
-	set_value 4 42 in0_max 3465
-	set_value 4 42 in0_min 3135
-	set_value 4 42 curr1_label "XP3R3V Current"
-	set_value 4 42 curr1_max 0
-	set_value 4 42 curr1_min 0
-	set_value 16 70 in0_label "Switch_0V8 Voltage"
-	set_value 16 70 in0_max 840
-	set_value 16 70 in0_min 760
-	set_value 16 70 curr1_label "Switch_0V8 Current"
-	set_value 16 70 curr1_max 0
-	set_value 16 70 curr1_min 0
-	set_value 16 49 in0_label "Switch_1V2 Voltage"
-	set_value 16 49 in0_max 1260
-	set_value 16 49 in0_min 1140
-	set_value 16 49 curr1_label "Switch_1V2 Current"
-	set_value 16 49 curr1_max 0
-	set_value 16 49 curr1_min 0
-	set_value 17 45 in0_label "Switch_1V0_FPGA Voltage"
-	set_value 17 45 in0_max 1050
-	set_value 17 45 in0_min 950
-	set_value 17 45 curr1_label "Switch_1V0_FPGA Current"
-	set_value 17 45 curr1_max 0
-	set_value 17 45 curr1_min 0
-	set_value 17 49 in0_label "Switch_0V8 Voltage"
-	set_value 17 49 in0_max 840
-	set_value 17 49 in0_min 760
-	set_value 17 49 curr1_label "Switch_0V8 Current"
-	set_value 17 49 curr1_max 0
-	set_value 17 49 curr1_min 0
-	set_value 19 30 in0_label "Line1_3V3 Voltage"
-	set_value 19 30 in0_max 1732
-	set_value 19 30 in0_min 1568
-	set_value 19 30 curr1_label "Line1_3V3 Current"
-	set_value 19 30 curr1_max 0
-	set_value 19 30 curr1_min 0
-	set_value 19 50 in0_label "Line1_0V8_VDD_A Voltage"
-	set_value 19 50 in0_max 840
-	set_value 19 50 in0_min 760
-	set_value 19 50 curr1_label "Line1_0V8_VDD_A Current"
-	set_value 19 50 curr1_max 0
-	set_value 19 50 curr1_min 0
-	set_value 19 70 in0_label "Line1_0V8_A Voltage"
-	set_value 19 70 in0_max 840
-	set_value 19 70 in0_min 760
-	set_value 19 70 curr1_label "Line1_0V8_A Current"
-	set_value 19 70 curr1_max 0
-	set_value 19 70 curr1_min 0
-	set_value 20 50 in0_label "Line1_0V8_VDD_B Voltage"
-	set_value 20 50 in0_max 840
-	set_value 20 50 in0_min 760
-	set_value 20 50 curr1_label "Line1_0V8_VDD_B Current"
-	set_value 20 50 curr1_max 0
-	set_value 20 50 curr1_min 0
-	set_value 20 70 in0_label "Line1_0V8_B Voltage"
-	set_value 20 70 in0_max 840
-	set_value 20 70 in0_min 760
-	set_value 20 70 curr1_label "Line1_0V8_B Current"
-	set_value 20 70 curr1_max 0
-	set_value 20 70 curr1_min 0
-	set_value 20 45 in0_label "Line1_1V8 Voltage"
-	set_value 20 45 in0_max 1890
-	set_value 20 45 in0_min 1710
-	set_value 20 45 curr1_label "Line1_1V8 Current"
-	set_value 20 45 curr1_max 0
-	set_value 20 45 curr1_min 0
-	set_value 21 30 in0_label "Line2_3V3 Voltage"
-	set_value 21 30 in0_max 1732
-	set_value 21 30 in0_min 1568
-	set_value 21 30 curr1_label "Line2_3V3 Current"
-	set_value 21 30 curr1_max 0
-	set_value 21 30 curr1_min 0
-	set_value 21 50 in0_label "Line2_0V8_VDD_A Voltage"
-	set_value 21 50 in0_max 840
-	set_value 21 50 in0_min 760
-	set_value 21 50 curr1_label "Line2_0V8_VDD_A Current"
-	set_value 21 50 curr1_max 0
-	set_value 21 50 curr1_min 0
-	set_value 21 70 in0_label "Line2_0V8_A Voltage"
-	set_value 21 70 in0_max 840
-	set_value 21 70 in0_min 760
-	set_value 21 70 curr1_label "Line2_0V8_A Current"
-	set_value 21 70 curr1_max 0
-	set_value 21 70 curr1_min 0
-	set_value 22 50 in0_label "Line2_0V8_VDD_B Voltage"
-	set_value 22 50 in0_max 840
-	set_value 22 50 in0_min 760
-	set_value 22 50 curr1_label "Line2_0V8_VDD_B Current"
-	set_value 22 50 curr1_max 0
-	set_value 22 50 curr1_min 0
-	set_value 22 70 in0_label "Line2_0V8_B Voltage"
-	set_value 22 70 in0_max 840
-	set_value 22 70 in0_min 760
-	set_value 22 70 curr1_label "Line2_0V8_B Current"
-	set_value 22 70 curr1_max 0
-	set_value 22 70 curr1_min 0
-	set_value 22 45 in0_label "Line2_1V8 Voltage"
-	set_value 22 45 in0_max 1890
-	set_value 22 45 in0_min 1710
-	set_value 22 45 curr1_label "Line2_1V8 Current"
-	set_value 22 45 curr1_max 0
-	set_value 22 45 curr1_min 0
-	set_value 23 45 in0_label "Switch_3V3_Early Voltage"
-	set_value 23 45 in0_max 3465
-	set_value 23 45 in0_min 3135
-	set_value 23 45 curr1_label "Switch_3V3_Early Current"
-	set_value 23 45 curr1_max 0
-	set_value 23 45 curr1_min 0
-fi
-
 
 # run sensors.config set command
 sensors -s
@@ -409,11 +303,4 @@ sleep 3
 
 #run power monitor
 echo "Start Power monitor"
-if [ "$board_type" = "Phalanx" ]; then
-	mv /usr/local/bin/power_monitor_phalanx.py /usr/local/bin/power_monitor.py
-	rm /usr/local/bin/power_monitor_fishbone.py
-else
-	mv /usr/local/bin/power_monitor_fishbone.py /usr/local/bin/power_monitor.py
-	rm /usr/local/bin/power_monitor_phalanx.py
-fi
 /usr/local/bin/power_monitor.py &

@@ -7,15 +7,26 @@ import time
 import syslog
 
 
-PSU_NUM = 2
-IR358X_NUM = 8
-TEMP_NUM = 6
+PSU_NUM = 4
+IR358X_NUM = 20
+TEMP_NUM = 11
 MONITOR_POLL_TIME = (60 * 10) #10 mins
 MonitorItem = [
 ######sensors#######
-['PSU', 'dps1100-i2c-24-58', 'dps1100-i2c-25-59'], #PSU
-['IR358x', 'ir38060-i2c-4-43', 'ir38062-i2c-4-49', 'ir3595-i2c-16-12', 'ir38060-i2c-17-47', 'ir3584-i2c-18-70', 'ir3584-i2c-18-71', 'ir3584-i2c-4-15', 'ir3584-i2c-4-16'], #IR358x
-['Temp', 'tmp75-i2c-7-4a', 'tmp75-i2c-7-4b', 'tmp75-i2c-7-4c', 'tmp75-i2c-7-4d', 'tmp75-i2c-39-48', 'tmp75-i2c-39-49'], #Temp
+	['PSU', 'dps1100-i2c-25-58', 'dps1100-i2c-26-58', 'dps1100-i2c-28-58', 'dps1100-i2c-29-58'], #PSU
+	['IR358x', 'ir3584-i2c-4-15', 'ir3584-i2c-4-16', 'ir38062-i2c-4-42', 
+	'ir3584-i2c-16-70', 'ir38062-i2c-16-49', 
+	'ir38060-i2c-17-45', 'ir38062-i2c-17-49', 
+	'ir3584-i2c-19-30', 'ir3584-i2c-19-50', 'ir3584-i2c-19-70', 
+	'ir3584-i2c-20-50', 'ir3584-i2c-20-70', 'ir38060-i2c-20-45', 
+	'ir3584-i2c-21-30', 'ir3584-i2c-21-50', 'ir3584-i2c-21-70', 
+	'ir3584-i2c-22-50', 'ir3584-i2c-22-70', 'ir38060-i2c-22-45', 
+	'ir38060-i2c-23-45'], #IR358x
+	['Temp', 'tmp75-i2c-7-4d', 'tmp75-i2c-7-4e', 'tmp75-i2c-7-4f', 
+	'tmp75-i2c-31-48', 'tmp75-i2c-31-49', 
+	'tmp75-i2c-39-48', 'tmp75-i2c-39-49', 
+	'tmp75-i2c-42-48', 'tmp75-i2c-42-49', 
+	'tmp75-i2c-43-48', 'tmp75-i2c-43-49'], #Temp
 ]
 
 psu_obj = [0]*PSU_NUM

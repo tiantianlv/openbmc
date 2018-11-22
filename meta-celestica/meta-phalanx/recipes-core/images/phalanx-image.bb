@@ -34,7 +34,6 @@ IMAGE_INSTALL += " \
   openbmc-gpio \
   plat-utils \
   tlv-eeprom \
-  psu-fru \
   eeprom-data \
   fan-ctrl \
   peci-util \

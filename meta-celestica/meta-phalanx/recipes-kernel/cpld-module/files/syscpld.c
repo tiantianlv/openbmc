@@ -64,7 +64,7 @@ struct temp_data cpu_temp_data;
 struct temp_data optical_temp_data;
 
 static const struct i2c_device_id syscpld_id[] = {
-	{"syscpld_phalanx", SYSCPLD },
+	{"syscpld", SYSCPLD },
 	{ }
 };
 
@@ -805,7 +805,7 @@ static int syscpld_probe(struct i2c_client *client,
 
 static struct i2c_driver syscpld_driver = {
 	.driver = {
-		   .name = "syscpld_phalanx",
+		   .name = "syscpld",
 		   },
 	.probe = syscpld_probe,
 	.remove = syscpld_remove,

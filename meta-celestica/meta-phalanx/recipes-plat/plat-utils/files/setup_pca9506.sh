@@ -10,46 +10,42 @@ PSU4_PW_OK=481
 PSU3_AC_OK=482
 PSU4_AC_OK=483
 
-source /usr/local/bin/openbmc-utils.sh
-board_type=$(board_type)
 psu_offset=( 0 1 4 5 2 3 )
 
-if [ "$board_type" = "Phalanx" ]; then
-	for psu_index in $(seq 0 5)
-	do
-		gpio=$((PSU_INT_BASE + ${psu_offset[$psu_index]}))
-		echo $gpio > $GPIO_EXPORT
-		# echo in > "${GPIO_PATH}${gpio}/direction"
-
-		gpio=$((PSU_PSON_BASE + ${psu_offset[$psu_index]}))
-		echo $gpio > $GPIO_EXPORT
-		echo out > "${GPIO_PATH}${gpio}/direction"
-		echo 0 > "${GPIO_PATH}${gpio}/value"
-
-		gpio=$((PSU_KILL_ON_BASE + ${psu_offset[$psu_index]}))
-		echo $gpio > $GPIO_EXPORT
-		echo out > "${GPIO_PATH}${gpio}/direction"
-		echo 0 > "${GPIO_PATH}${gpio}/value"
-
-		gpio=$((PSU_PRESENT_BASE + ${psu_offset[$psu_index]}))
-		echo $gpio > $GPIO_EXPORT
-		# echo in > "${GPIO_PATH}${gpio}/direction"
-	done
-
-	gpio=${PSU3_PW_OK}
+for psu_index in $(seq 0 5)
+do
+	gpio=$((PSU_INT_BASE + ${psu_offset[$psu_index]}))
 	echo $gpio > $GPIO_EXPORT
 	# echo in > "${GPIO_PATH}${gpio}/direction"
 
-	gpio=${PSU4_PW_OK}
+	gpio=$((PSU_PSON_BASE + ${psu_offset[$psu_index]}))
 	echo $gpio > $GPIO_EXPORT
-	# echo in > "${GPIO_PATH}${gpio}/direction"
+	echo out > "${GPIO_PATH}${gpio}/direction"
+	echo 0 > "${GPIO_PATH}${gpio}/value"
 
-	gpio=${PSU3_AC_OK}
+	gpio=$((PSU_KILL_ON_BASE + ${psu_offset[$psu_index]}))
 	echo $gpio > $GPIO_EXPORT
-	# echo in > "${GPIO_PATH}${gpio}/direction"
+	echo out > "${GPIO_PATH}${gpio}/direction"
+	echo 0 > "${GPIO_PATH}${gpio}/value"
 
-	gpio=${PSU4_AC_OK}
+	gpio=$((PSU_PRESENT_BASE + ${psu_offset[$psu_index]}))
 	echo $gpio > $GPIO_EXPORT
 	# echo in > "${GPIO_PATH}${gpio}/direction"
-fi
+done
+
+gpio=${PSU3_PW_OK}
+echo $gpio > $GPIO_EXPORT
+# echo in > "${GPIO_PATH}${gpio}/direction"
+
+gpio=${PSU4_PW_OK}
+echo $gpio > $GPIO_EXPORT
+# echo in > "${GPIO_PATH}${gpio}/direction"
+
+gpio=${PSU3_AC_OK}
+echo $gpio > $GPIO_EXPORT
+# echo in > "${GPIO_PATH}${gpio}/direction"
+
+gpio=${PSU4_AC_OK}
+echo $gpio > $GPIO_EXPORT
+# echo in > "${GPIO_PATH}${gpio}/direction"
 
