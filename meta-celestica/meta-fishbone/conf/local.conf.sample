@@ -8,3 +8,4 @@ MACHINE ??= "fishbone"
 # OpenBMC distro settings
 DISTRO ?= "openbmc-fb"
 
+DEFAULT_TIMEZONE = "Asia/Shanghai"

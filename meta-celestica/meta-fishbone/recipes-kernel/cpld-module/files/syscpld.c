@@ -524,12 +524,28 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  0x60, 3, 1,
 	},
 	{
+	  "psu_r_int_status",
+	  "0x0: interrupt\n"
+	  "0x1: no interrupt",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  NULL,
+	  0x60, 4, 1,
+	},
+	{
+	  "psu_l_int_status",
+	  "0x0: interrupt\n"
+	  "0x1: no interrupt",
+	  I2C_DEV_ATTR_SHOW_DEFAULT,
+	  NULL,
+	  0x60, 5, 1,
+	},
+	{
 	  "psu_r_ac_status",
 	  "0x0: not OK\n"
 	  "0x1: OK",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
-	  0x60, 4, 1,
+	  0x60, 6, 1,
 	},
 	{
 	  "psu_l_ac_status",
@@ -537,7 +553,7 @@ static const i2c_dev_attr_st syscpld_attr_table[] = {
 	  "0x1: OK",
 	  I2C_DEV_ATTR_SHOW_DEFAULT,
 	  NULL,
-	  0x60, 5, 1,
+	  0x60, 7, 1,
 	},
 	{
 	  "psu_l_led_ctrl_en",
