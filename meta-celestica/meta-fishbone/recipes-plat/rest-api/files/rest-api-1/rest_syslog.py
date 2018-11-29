@@ -29,7 +29,7 @@ def syslog_action(data):
     if conf_line < 0:
         conf_line = 0
     proc = subprocess.Popen("head /etc/rsyslog.conf -n {} > /etc/rsyslog.conf_;"
-                            "echo '*.*' @{} >> /etc/rsyslog.conf_;"
+                            "echo '*.*' @{}:1514 >> /etc/rsyslog.conf_;"
                             "mv /etc/rsyslog.conf_ /etc/rsyslog.conf;"
                             "/etc/init.d/syslog.rsyslog restart".format(conf_line, addr),
                             shell=True, stdout=PIPE, stderr=PIPE)

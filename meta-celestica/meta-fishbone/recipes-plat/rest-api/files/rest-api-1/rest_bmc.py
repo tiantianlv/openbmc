@@ -54,7 +54,7 @@ def get_bmc():
         reset_reason = "User Initiated Reset or WDT Reset"
 
     # Get BMC's Up Time
-    uptime = Popen('uptime', shell=True, stdout=PIPE).stdout.read().decode()
+    uptime = Popen('uptime', shell=True, stdout=PIPE).stdout.read().decode().strip('\n')
 
     # Use another method, ala /proc, but keep the old one for backwards
     # compat.
@@ -79,7 +79,7 @@ def get_bmc():
                        shell=True, stdout=PIPE).communicate()
     data = data.decode()
     adata = data.split()
-    disk_usage = 'Emmc: {}K total, {}K used, {}K available, {} use'.format(adata[1], adata[2], adata[3], adata[4])
+    disk_usage = 'EMMC: {}K total, {}K used, {}K available, {} use'.format(adata[1], adata[2], adata[3], adata[4])
 
     # Get OpenBMC version
     version = ""
@@ -89,6 +89,15 @@ def get_bmc():
     ver = re.search(r'v([\w\d._-]*)\s', data)
     if ver:
         version = ver.group(1)
+    
+    # Get U-Boot version
+    uboot_version = ""
+    (data, _) = Popen('strings /dev/mtd0 | grep U-Boot | grep 2016',
+                      shell=True, stdout=PIPE).communicate()
+    data = data.decode()
+    ver = re.search(r'v([\w\d._-]*)\s', data)
+    if ver:
+        uboot_version = ver.group(1)
 
     # Get CPLD version
     syscpld_version = ""
@@ -96,7 +105,7 @@ def get_bmc():
                        shell=True, stdout=PIPE).communicate()
     data = data.decode()
     if len(data) > 2:
-        syscpld_version = data[2:].strip('\n')
+        syscpld_version = '{:0>2}'.format(data[2:].strip('\n'))
     else:
         syscpld_version = 'null'
     
@@ -105,7 +114,7 @@ def get_bmc():
                        shell=True, stdout=PIPE).communicate()
     data = data.decode()
     if len(data) > 2:
-        fancpld_version = data[2:].strip('\n')
+        fancpld_version = '{:0>2}'.format(data[2:].strip('\n'))
     else:
         fancpld_version = 'null'
 
@@ -126,6 +135,7 @@ def get_bmc():
                     "Memory Usage": mem_usage,
                     "CPU Usage": cpu_usage,
                     "OpenBMC Version": version,
+                    "U-Boot Version": uboot_version,
                     "SysCPLD Version":syscpld_version,
                     "FanCPLD Version":fancpld_version,
                 },
