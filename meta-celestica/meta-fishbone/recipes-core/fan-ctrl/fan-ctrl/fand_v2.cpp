@@ -1327,7 +1327,7 @@ static inline int check_fan_speed(int speed, struct line_policy *line)
 
 static inline float get_line_k(struct point begin, struct point end)
 {
-	return (end.speed - begin.speed) / (end.temp - begin.temp);
+	return (float)(end.speed - begin.speed) / (end.temp - begin.temp);
 }
 
 static inline int check_fall_temp(int temp, struct line_policy *line)
