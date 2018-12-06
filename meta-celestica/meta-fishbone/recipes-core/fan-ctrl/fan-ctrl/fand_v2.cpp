@@ -1960,7 +1960,7 @@ static int get_fan_direction(void)
 		/* close */
 		pclose(fp);
 
-		syslog(LOG_INFO, "get fan%d direction, [%s]", i+1, dir_str);
+		// syslog(LOG_INFO, "get fan%d direction, [%s]", i+1, dir_str);
 		if(!strncmp(dir_str, "0", 1)) {
 			f2r_fan_cnt++;
 			syslog(LOG_INFO, "get fan%d direction, [Front to rear]",i+1);			
