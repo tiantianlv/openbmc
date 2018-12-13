@@ -171,10 +171,17 @@ inlet_sensor_revise() {
     return $temp
 }
 
+cpu_temp_update() {
+    temp=$(get_cpu_temp)
+    val=$(($temp*1000))
+    echo $val >/sys/bus/i2c/devices/i2c-0/0-000d/temp2_input
+}
+
 psu_status_init
 come_rest_status 1
 come_rst_st=$?
 revise_temp=0
+cpu_update=0
 echo 70000 >/sys/bus/i2c/devices/i2c-7/7-004d/hwmon/hwmon3/temp1_max
 echo 60000 >/sys/bus/i2c/devices/i2c-7/7-004d/hwmon/hwmon3/temp1_max_hyst
 while true; do
@@ -190,6 +197,12 @@ while true; do
 	fi
     inlet_sensor_revise $revise_temp
     revise_temp=$?
+
+    cpu_update=$((cpu_update+1))
+    if [ $cpu_update -ge 6 ]; then
+        cpu_temp_update
+        cpu_update=0
+    fi
 
     usleep 500000
 done
