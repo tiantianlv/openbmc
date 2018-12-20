@@ -1349,7 +1349,6 @@ static int alarm_temp_update(int *alarm)
 						info->warn_count = 0;
 						info->flag |= (HIGH_WARN_BIT | HIGH_MAX_BIT);
 						info->recovery_count = 0;
-						*alarm |= HIGH_MAX_BIT;
 					}
 				} else if(info->lwarn != BAD_TEMP && 
 					(temp >= info->lwarn || ((info->flag & LOW_WARN_BIT) && 
@@ -1361,8 +1360,6 @@ static int alarm_temp_update(int *alarm)
 						info->warn_count = 0;
 						info->flag |= LOW_WARN_BIT;
 						info->recovery_count = 0;
-						if(info->flag & HIGH_MAX_BIT)
-							*alarm |= HIGH_MAX_BIT;
 					}
 				} else {
 					if(info->flag & HIGH_WARN_BIT) {
@@ -1377,14 +1374,14 @@ static int alarm_temp_update(int *alarm)
 							info->flag &= ~HIGH_MAX_BIT;
 							syslog(LOG_WARNING, "Major temp alarm resumed, set fan normal speed");
 						}
-						else {
-							*alarm |= HIGH_MAX_BIT;
-						}
 #ifdef DEBUG
 						syslog(LOG_DEBUG, "[xuth] Major max bit: %d, recovery count: %d", *alarm & HIGH_MAX_BIT ? 1 : 0, info->recovery_count);
 #endif
 					}
 				}
+
+				if(info->flag & HIGH_MAX_BIT)
+					*alarm |= HIGH_MAX_BIT;
 			}
 		}
 	}
@@ -1612,8 +1609,9 @@ static int fan_is_present_sysfs(int fan, struct fan_info_stu_sysfs *fan_info)
 			fantray->present = 0;
 		}
 	} else {
-		if(fan < TOTAL_FANS)
+		if(fan < TOTAL_FANS) {
 			return 1;
+		}
 		snprintf(buf, PATH_CACHE_SIZE, "%s/%s", fan_info->prefix, fan_info->fan_status_prefix);
 		rc = read_sysfs_int(buf, &ret);
 		if(rc < 0) {
@@ -1760,6 +1758,8 @@ static int get_psu_pwm(void)
 		adjust_sysnode_path(fan_info->rear_fan_prefix, fan_info->pwm_prefix, fullpath, sizeof(fullpath));
 		read_sysfs_int(fullpath, &tmp);
 		if(tmp > 100)
+			tmp = 100;
+		if(tmp < 0)
 			tmp = 0;
 		if(tmp > pwm)
 			pwm = tmp;
@@ -1808,10 +1808,6 @@ static int write_psu_fan_speed(const int fan, int value)
 		} else {
 			ret = write_sysfs_int(fullpath, 0);
 		}
-		
-#ifdef DEBUG
-		syslog(LOG_DEBUG, "[xuth] %s path: %s [value:%d]",fantray->name, fullpath, value);
-#endif
 		if(ret < 0) {
 			syslog(LOG_ERR, "failed to set fan %s/%s, value %#x",
 			fan_info->prefix, fan_info->pwm_prefix, value);
