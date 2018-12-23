@@ -15,7 +15,7 @@
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 
-all: fand fand_v2 fand32_v2
+all: fand fand_v2 fand32_v2 fand_phalanx
 
 fand: fand.cpp watchdog.cpp
 	$(CXX) $(CXXFLAGS) -pthread -o $@ $^ $(LDFLAGS)
@@ -26,7 +26,10 @@ fand_v2: fand_v2.cpp watchdog.cpp
 fand32_v2: fand32_v2.cpp watchdog.cpp
 	$(CXX) $(CXXFLAGS) -pthread -o $@ $^ $(LDFLAGS)
 
+fand_phalanx: fand_phalanx.cpp watchdog.cpp
+	$(CXX) $(CXXFLAGS) -pthread -o $@ $^ $(LDFLAGS)
+
 .PHONY: clean
 
 clean:
-	rm -rf *.o fand fand_v2 fand32_v2
+	rm -rf *.o fand fand_v2 fand32_v2 fand_phalanx
