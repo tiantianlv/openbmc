@@ -87,6 +87,8 @@
 #define FAN_FAILURE_THRESHOLD 3 /* How many times can a fan fail */
 #define FAN_LED_GREEN 1
 #define FAN_LED_RED 2
+#define PSU_LED_GREEN 0
+#define PSU_LED_RED 1
 #define SHUTDOWN_DELAY_TIME 72 /*if trigger shutdown event, delay 6mins to shutdown */
 
 #define BAD_TEMP (-60)
@@ -540,7 +542,7 @@ static struct fan_info_stu_sysfs psu2_fan_info = {
   .front_fan_prefix = "fan1_input",
   .rear_fan_prefix = "/sys/bus/i2c/devices/i2c-24/24-0058",
   .pwm_prefix = "fan1_pct",
-  .fan_led_prefix = "psu_led",
+  .fan_led_prefix = "psu_l_led_ctrl_en",
   .fan_present_prefix = "psu_l_present",
   .fan_status_prefix = "psu_l_status",
   //.present = 1,
@@ -553,7 +555,7 @@ static struct fan_info_stu_sysfs psu1_fan_info = {
   .front_fan_prefix = "fan1_input",
   .rear_fan_prefix = "/sys/bus/i2c/devices/i2c-25/25-0059",
   .pwm_prefix = "fan1_pct",
-  .fan_led_prefix = "psu_led",
+  .fan_led_prefix = "psu_l_led_ctrl_en",
   .fan_present_prefix = "psu_r_present",
   .fan_status_prefix = "psu_r_status",
   //.present = 1,
@@ -796,6 +798,7 @@ static struct thermal_policy b2f_one_fail_policy = {
 static struct thermal_policy *policy = NULL;
 static int pid_using = 0;
 static int direction = FAN_DIR_FAULT;
+static int psu_led_color = 0;
 int static fan_speed_temp = FAN_MEDIUM;
 
 static int write_fan_led(const int fan, const int color);
@@ -1630,11 +1633,14 @@ static int fan_is_present_sysfs(int fan, struct fan_info_stu_sysfs *fan_info)
 				fantray->status = 0;
 				syslog(LOG_WARNING, "%s power off", fantray->name);
 			}
+			psu_led_color |= (0x1 << fan);
 		} else {
 			if((fantray->present == 1) && (fantray->status == 0)) {
 				fantray->status = 1;
 				syslog(LOG_WARNING, "%s power on", fantray->name);
 			}
+			if(fantray->direction != direction)
+				psu_led_color |= (0x1 << fan);
 		}
 		if(fantray->present == 0) {
 			syslog(LOG_INFO, "%s present", fantray->name);
@@ -1643,6 +1649,7 @@ static int fan_is_present_sysfs(int fan, struct fan_info_stu_sysfs *fan_info)
 		return 1;
 	}
 
+	psu_led_color |= (0x1 << fan);
 	return 0;
 }
 
@@ -1727,8 +1734,6 @@ static int write_fan_speed(const int fan, const int value)
 /* Set up fan LEDs */
 static int write_fan_led(const int fan, const int color)
 {
-	if(fan >= TOTAL_FANS)
-		return 0; //not support write PSU LED
 	return write_fan_led_sysfs(fan, color);
 }
 
@@ -1828,8 +1833,7 @@ static int write_psu_fan_led(const int fan, const int color)
 {
 	int err;
 	
-	err = write_fan_led_sysfs(TOTAL_FANS, color);
-	err += write_fan_led_sysfs(TOTAL_FANS, color);
+	err = write_fan_led_sysfs(fan, color);
 
 	return err;
 }
@@ -2586,7 +2590,11 @@ int main(int argc, char **argv) {
 		}
 		/* Suppress multiple warnings for similar number of fan failures. */
 		prev_fans_bad = fan_failure;
-
+		if(psu_led_color)
+			write_psu_fan_led(TOTAL_FANS, PSU_LED_RED);
+		else
+			write_psu_fan_led(TOTAL_FANS, PSU_LED_GREEN);
+		psu_led_color = 0;
 		/* if everything is fine, restart the watchdog countdown. If this process
 		 * is terminated, the persistent watchdog setting will cause the system
 		 * to reboot after the watchdog timeout. */
