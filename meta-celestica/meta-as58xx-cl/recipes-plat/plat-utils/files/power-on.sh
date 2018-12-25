@@ -15,7 +15,11 @@
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 
-sys_led green on #sysled light blue
+if /usr/local/bin/boot_info.sh |grep "Slave Flash" ; then
+    sys_led yellow on #sysled light yellow
+else
+    sys_led green on #sysled light green
+fi
 
 #Set BMC login timeout
 echo "TMOUT=300" >> /etc/profile

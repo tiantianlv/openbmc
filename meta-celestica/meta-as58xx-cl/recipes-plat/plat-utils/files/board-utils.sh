@@ -1,6 +1,7 @@
 #!/bin/bash
 
 SYSCPLD_SYSFS_DIR="/sys/bus/i2c/devices/i2c-0/0-000d"
+FANCPLD_SYSFS_DIR="/sys/bus/i2c/devices/i2c-8/8-000d"
 HARDWARE_VERSION="${SYSCPLD_SYSFS_DIR}/hardware_version"
 USRV_STATUS_SYSFS="${SYSCPLD_SYSFS_DIR}/come_status"
 PWR_BTN_SYSFS="${SYSCPLD_SYSFS_DIR}/cb_pwr_btn_n"
@@ -14,6 +15,7 @@ BIOS_CTRL="${SYSCPLD_SYSFS_DIR}/bios_ctrl"
 BIOS_BOOT_STATUS="${SYSCPLD_SYSFS_DIR}/bios_boot_ok"
 BIOS_BOOT_CHIP="${SYSCPLD_SYSFS_DIR}/bios_boot_cs"
 COME_RESET_STATUS_SYSFS="${SYSCPLD_SYSFS_DIR}/come_rst_st"
+FAN_WDT_STATUS="${FANCPLD_SYSFS_DIR}/wdt_status"
 
 wedge_power() {
 	if [ "$1" == "on" ]; then
