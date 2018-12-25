@@ -27,7 +27,19 @@
 
 #include "i2c_dev_sysfs.h"
 
+#define MAX31730_ALARM_NODE 0x0
+#define SYSFS_READ 0
+#define SYSFS_WRITE 1
 #define Get_Bit(val, n)		((1 << n) & val)
+
+struct temp_data {
+	int max;
+	int max_hyst;
+};
+
+struct temp_data *local_temp_limit;
+struct temp_data *remote1_temp_limit;
+struct temp_data *remote2_temp_limit;
 
 static i2c_dev_data_st *max31730_data;
 
@@ -71,6 +83,81 @@ static ssize_t max31730_show(struct device *dev,
 	return scnprintf(buf, PAGE_SIZE, "%d\n", value / 10);
 }
 
+static int temp_value_rw(const char *name, int opcode, int value)
+{
+	int *p = NULL;
+
+	if(strcmp(name, "temp1_max") == 0) {
+		p = &local_temp_limit->max;
+	} else if(strcmp(name, "temp1_max_hyst") == 0) {
+		p = &local_temp_limit->max_hyst;
+	} else if(strcmp(name, "temp2_max") == 0) {
+		p = &remote1_temp_limit->max;
+	} else if(strcmp(name, "temp2_max_hyst") == 0) {
+		p = &remote1_temp_limit->max_hyst;
+	} else if(strcmp(name, "temp3_max") == 0) {
+		p = &remote2_temp_limit->max;
+	} else if(strcmp(name, "temp3_max_hyst") == 0) {
+		p = &remote2_temp_limit->max_hyst;
+	} else {
+		return -1;
+	}
+
+	if(opcode == SYSFS_READ)
+		return *p;
+	else if(opcode == SYSFS_WRITE)
+		*p = value;
+	else
+		return -1;
+
+	return 0;
+}
+
+static ssize_t max31730_alarm_show(struct device *dev,
+                                    struct device_attribute *attr,
+                                    char *buf)
+{
+	int value = -1;
+	i2c_sysfs_attr_st *i2c_attr = TO_I2C_SYSFS_ATTR(attr);
+	const i2c_dev_attr_st *dev_attr = i2c_attr->isa_i2c_attr;
+	const char *name = dev_attr->ida_name;
+
+	if(!name)
+		return -1;
+
+	value = temp_value_rw(name, SYSFS_READ, 0);
+
+	return scnprintf(buf, PAGE_SIZE, "%d\n", value);
+}
+
+static ssize_t max31730_alarm_store(struct device *dev,
+                                struct device_attribute *attr,
+                                const char *buf, size_t count)
+{
+	int rc;
+	int write_value = 0;
+	i2c_sysfs_attr_st *i2c_attr = TO_I2C_SYSFS_ATTR(attr);
+	const i2c_dev_attr_st *dev_attr = i2c_attr->isa_i2c_attr;
+	const char *name = dev_attr->ida_name;
+
+	if(!name)
+		return -1;
+
+	if (buf == NULL) {
+		return -ENXIO;
+	}
+
+	rc = kstrtol(buf, 10, &write_value);
+	if (rc != 0)	{
+		return count;
+	}
+	rc = temp_value_rw(name, SYSFS_WRITE, write_value);
+	if(rc < 0)
+		return -1;
+
+	return count;
+}
+
 static const i2c_dev_attr_st max31730_attr_table[] = {
 	{
 	  "temp1_input",
@@ -80,11 +167,39 @@ static const i2c_dev_attr_st max31730_attr_table[] = {
 	  0x00, 0, 8,
 	},
 	{
+	  "temp1_max",
+	  "local temprature max\n",
+	  max31730_alarm_show,
+	  max31730_alarm_store,
+	  MAX31730_ALARM_NODE, 0, 8,
+	},
+	{
+	  "temp1_max_hyst",
+	  "local hysterical temprature\n",
+	  max31730_alarm_show,
+	  max31730_alarm_store,
+	  MAX31730_ALARM_NODE, 0, 8,
+	},
+	{
 	  "temp2_input",
 	  "remote 1 temprature\n",
 	  max31730_show,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
 	  0x02, 0, 8,
+	},
+		{
+	  "temp2_max",
+	  "remote1 temprature max\n",
+	  max31730_alarm_show,
+	  max31730_alarm_store,
+	  MAX31730_ALARM_NODE, 0, 8,
+	},
+	{
+	  "temp2_max_hyst",
+	  "remote1 hysterical temprature\n",
+	  max31730_alarm_show,
+	  max31730_alarm_store,
+	  MAX31730_ALARM_NODE, 0, 8,
 	},
 	{
 	  "temp3_input",
@@ -92,6 +207,20 @@ static const i2c_dev_attr_st max31730_attr_table[] = {
 	  max31730_show,
 	  I2C_DEV_ATTR_STORE_DEFAULT,
 	  0x04, 0, 8,
+	},
+		{
+	  "temp3_max",
+	  "remote2 temprature max\n",
+	  max31730_alarm_show,
+	  max31730_alarm_store,
+	  MAX31730_ALARM_NODE, 0, 8,
+	},
+	{
+	  "temp3_max_hyst",
+	  "remote2 hysterical temprature\n",
+	  max31730_alarm_show,
+	  max31730_alarm_store,
+	  MAX31730_ALARM_NODE, 0, 8,
 	},
 	{
 	  "remote_3_temp",
@@ -322,6 +451,12 @@ static int max31730_remove(struct i2c_client *client)
 {
 	i2c_dev_sysfs_data_clean(client, max31730_data);
 	kfree(max31730_data);
+	if(local_temp_limit)
+		kfree(local_temp_limit);
+	if(remote1_temp_limit)
+		kfree(remote1_temp_limit);
+	if(remote2_temp_limit)
+		kfree(remote2_temp_limit);
 	return 0;
 }
 
@@ -340,7 +475,26 @@ static int max31730_probe(struct i2c_client *client,
 	if (!max31730_data)
 		return -ENOMEM;
 
+	local_temp_limit = kzalloc(sizeof(struct temp_data), GFP_KERNEL);
+	if(!local_temp_limit)
+		goto release1;
+	remote1_temp_limit = kzalloc(sizeof(struct temp_data), GFP_KERNEL);
+	if(!remote1_temp_limit)
+		goto release2;
+	remote2_temp_limit = kzalloc(sizeof(struct temp_data), GFP_KERNEL);
+	if(!remote2_temp_limit)
+		goto release3;
+
 	return i2c_dev_sysfs_data_init(client, max31730_data, max31730_attr_table, n_attrs);
+
+release3:
+	if(remote1_temp_limit)
+		kfree(remote1_temp_limit);
+release2:
+	if(local_temp_limit)
+		kfree(local_temp_limit);
+release1:
+	return -ENOMEM;
 }
 
 static struct i2c_driver max31730_driver = {
