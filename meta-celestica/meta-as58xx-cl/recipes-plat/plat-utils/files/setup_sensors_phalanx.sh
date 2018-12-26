@@ -114,7 +114,7 @@ set_value 17 45 curr1_label "Switch_1V0_FPGA Current"
 set_value 17 45 curr1_max 1500
 set_value 17 45 curr1_min 0
 set_value 17 49 in0_label "Switch_0V8 Voltage"
-set_value 17 49 in0_max 840
+set_value 17 49 in0_max 860
 set_value 17 49 in0_min 760
 set_value 17 49 curr1_label "Switch_0V8 Current"
 set_value 17 49 curr1_max 15000
