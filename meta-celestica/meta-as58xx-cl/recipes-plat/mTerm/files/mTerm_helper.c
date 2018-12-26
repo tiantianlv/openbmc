@@ -191,6 +191,8 @@ void writeToBuffer(bufStore *buf, char* data, int len) {
    struct stat file_stat;
    int rc = stat(buf->file, &file_stat), nbytes = len, cur_len;
    char *cur = data, *prev = data;
+   char *p;
+   int i = 0;
 
    if (rc != 0) {
      if (errno == ENOENT) {
@@ -219,6 +221,10 @@ void writeToBuffer(bufStore *buf, char* data, int len) {
      }
    }
 
+   for(p = prev; i < nbytes; i++) {
+      if(*(p + i) == '\r')
+           *(p + i) = '\0';
+   }
   /*
    * Treat data as byte array but try to seek out newline characters. When they are
    * found, add current timestamp and sequential line number.
