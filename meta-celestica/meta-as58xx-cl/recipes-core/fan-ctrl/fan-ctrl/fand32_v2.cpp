@@ -1677,7 +1677,7 @@ static int set_fan_sysfs(int fan, int value)
 	}
 
 	if(fantray->direction != direction)
-		value = 0;
+		value = 26;
 	snprintf(fullpath, PATH_CACHE_SIZE, "%s/%s", fan_info->prefix, fan_info->pwm_prefix);
 	adjust_sysnode_path(fan_info->prefix, fan_info->pwm_prefix, fullpath, sizeof(fullpath));
 	ret = write_sysfs_int(fullpath, value);
@@ -1893,7 +1893,8 @@ int fan_speed_okay(const int fan, int speed, const int slop)
 	} else if(ret == 1) {
 		fantray->present = 1;
 	}
-
+	if(fantray->direction != direction)
+		return 0;
 	snprintf(buf, PATH_CACHE_SIZE, "%s/%s", fan_info->prefix, fan_info->front_fan_prefix);
 
 	rc = read_sysfs_int(buf, &ret);
@@ -2536,11 +2537,10 @@ int main(int argc, char **argv) {
 					syslog(LOG_DEBUG, "[zmzhan]%s:fan[%d] rear_failed=%d", __func__, fan, fan_info->rear_failed);
 #endif
 				}
-				if(fantray->failed > 0) {
+				if(fantray->present == 0) {
 					fan_failure++;
 				}
-				else if(fantray->present == 0)
-				{
+				else if((fantray->failed > 0) || (fantray->direction != direction)) {
 					fan_failure++;
 				}
 
