@@ -27,6 +27,7 @@ SRC_URI += "file://get_fan_speed.sh \
             file://fand_v2.cpp \
             file://fand32_v2.cpp \
             file://fand_phalanx.cpp \
+            file://fand_v2.h \
             file://watchdog.cpp \
             file://watchdog.h \
             file://Makefile \

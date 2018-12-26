@@ -49,6 +49,7 @@
 #include "watchdog.h"
 #include <fcntl.h>
 #include <openbmc/obmc-i2c.h>
+#include "fand_v2.h"
 
 //#define DEBUG
 //#define FOR_F2B
@@ -103,8 +104,6 @@
 
 #define PWM_UNIT_MAX 255
 
-#define PATH_CACHE_SIZE 256
-
 #define FAN_WDT_TIME (0x3c) //5 * 60
 #define FAN_WDT_ENABLE_SYSFS "/sys/bus/i2c/devices/i2c-8/8-000d/wdt_en"
 #define FAN_WDT_TIME_SYSFS "/sys/bus/i2c/devices/i2c-8/8-000d/wdt_time"
@@ -118,8 +117,6 @@
 #define PID_CONFIG_PATH "/mnt/data/pid_config_v2.ini"
 #define PID_FILE_LINE_MAX 100
 
-#define uchar unsigned char
-
 #define DISABLE 0
 #define LOW_WARN_BIT (0x1 << 0)
 #define HIGH_WARN_BIT (0x1 << 1)
@@ -130,34 +127,6 @@
 
 #define NORMAL_K	((float)(FAN_NORMAL_MAX - FAN_NORMAL_MIN) / (RAISING_TEMP_HIGH - RAISING_TEMP_LOW))
 #define ONE_FAIL_K	((float)(FAN_ONE_FAIL_MAX - FAN_ONE_FAIL_MIN) / (RAISING_TEMP_HIGH - RAISING_TEMP_LOW))
-
-struct point {
-	int temp;
-	int speed;
-};
-
-static int calculate_line_speed(struct sensor_info_sysfs *sensor, struct line_policy *line);
-struct line_policy {
-	int temp_hyst;
-	struct point begin;
-	struct point end;
-	int (*get_speed)(struct sensor_info_sysfs *sensor, struct line_policy *line);
-};
-
-static int calculate_pid_speed(struct pid_policy *pid);
-struct pid_policy {
-	int cur_temp;
-	int t1;
-	int t2;
-	int set_point;
-	float kp;
-	float ki;
-	float kd;
-	int last_output;
-	int max_output;
-	int min_output;
-	int (*get_speed)(struct pid_policy pid);
-};
 
 struct line_policy phalanx_f2b_normal = {
 	.temp_hyst = CRITICAL_TEMP_HYST,
@@ -211,84 +180,8 @@ struct line_policy phalanx_b2f_onefail = {
 	.get_speed = calculate_line_speed,
 };
 
-struct sensor_info_sysfs {
-  char* prefix;
-  char* suffix;
-  uchar error_cnt;
-  int temp;
-  int t1;
-  int t2;
-  int old_pwm;
-  float setpoint;
-  float p;
-  float i;
-  float d;
-  float min_output;
-  float max_output;
-  int (*read_sysfs)(struct sensor_info_sysfs *sensor);
-  char path_cache[PATH_CACHE_SIZE];
-};
-
-struct fan_info_stu_sysfs {
-  char *prefix;
-  char *front_fan_prefix;
-  char *rear_fan_prefix;
-  char *pwm_prefix;
-  char *fan_led_prefix;
-  char *fan_present_prefix;
-  char *fan_status_prefix;
-  //uchar present; //for chassis using, other ignore it
-  uchar front_failed;  //for single fan fail
-  uchar rear_failed;
-};
-
-struct psu_info_sysfs {
-  char* sysfs_path;
-  char* shutdown_path;
-  int value_to_shutdown;
-};
-
-
-struct board_info_stu_sysfs {
-  const char *name;
-  uint slot_id;
-  int correction;
-  int lwarn;
-  int hwarn;
-  int warn_count;
-  int recovery_count;
-  int flag;
-  struct sensor_info_sysfs *critical;
-  struct sensor_info_sysfs *alarm;
-};
-
-struct fantray_info_stu_sysfs {
-  const char *name;
-  int present;
-  int status;
-  int failed; //for fantray fail
-  int direction;
-  struct fan_info_stu_sysfs fan1;
-};
-
-struct rpm_to_pct_map {
-  uint pct;
-  uint rpm;
-};
-struct dictionary_t {
-	char name[20];
-	int value;
-};
-
 static int calculate_fan_normal_pwm(int cur_temp, int last_temp);
 static int calculate_fan_one_fail_pwm(int cur_temp, int last_temp);
-
-struct thermal_policy {
-	int pwm;
-	int old_pwm;
-	line_policy *line;
-	// int (*calculate_pwm)(int cur_temp, int last_temp);
-};
 
 static int read_temp_sysfs(struct sensor_info_sysfs *sensor);
 static int read_temp_directly_sysfs(struct sensor_info_sysfs *sensor);
@@ -910,7 +803,7 @@ static struct thermal_policy *policy = NULL;
 static int pid_using = 0;
 static int direction = FAN_DIR_FAULT;
 static int psu_led_color = 0;
-int static fan_speed_temp = FAN_MEDIUM;
+static int fan_speed_temp = FAN_MEDIUM;
 #if SENSOR_LOST_SIMULATION
 static int sensor_lost = 0;
 #endif
@@ -1606,7 +1499,7 @@ static int calculate_line_speed(struct sensor_info_sysfs *sensor, struct line_po
 	return check_fan_speed(speed, line);
 }
 
-static int calculate_pid_speed(struct pid_policy *pid)
+int calculate_pid_speed(struct pid_policy *pid)
 {
 	int output = 0;
 	output = pid->last_output + pid->kp * (pid->cur_temp - pid->t1) + 
