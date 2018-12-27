@@ -1700,8 +1700,8 @@ static int set_fan_sysfs(int fan, int value)
 		return -1;
 	}
 
-	if(fantray->direction != direction)
-		value = 0;
+	// if(fantray->direction != direction)
+	// 	value = 0;
 	snprintf(fullpath, PATH_CACHE_SIZE, "%s/%s", fan_info->prefix, fan_info->pwm_prefix);
 	adjust_sysnode_path(fan_info->prefix, fan_info->pwm_prefix, fullpath, sizeof(fullpath));
 	ret = write_sysfs_int(fullpath, value);
@@ -1812,7 +1812,7 @@ static int write_psu_fan_speed(const int fan, int value)
 	char fullpath[PATH_CACHE_SIZE];
 	struct fantray_info_stu_sysfs *fantray;
 	struct fan_info_stu_sysfs *fan_info;
-
+	return 0;
 
 	value = value * 100 /FAN_MAX; //convert it to pct
 	for(i = TOTAL_FANS; i < TOTAL_FANS + TOTAL_PSUS; i++) {
@@ -2574,7 +2574,7 @@ int main(int argc, char **argv) {
 		fan_failure = 0;
 		sub_failed = 0;
 		one_failed = 0;
-		for (fan = 0; fan < TOTAL_FANS + TOTAL_PSUS; fan++) {
+		for (fan = 0; fan < TOTAL_FANS/* + TOTAL_PSUS*/; fan++) {
 			if (fan_bad[fan] >= FAN_FAILURE_THRESHOLD) {
 				fantray = &fantray_info[fan];
 				fan_info = &fantray->fan1;
@@ -2646,10 +2646,10 @@ int main(int argc, char **argv) {
 		}
 		/* Suppress multiple warnings for similar number of fan failures. */
 		prev_fans_bad = fan_failure;
-		if(psu_led_color)
-			write_psu_fan_led(TOTAL_FANS, PSU_LED_RED);
-		else
-			write_psu_fan_led(TOTAL_FANS, PSU_LED_GREEN);
+		// if(psu_led_color)
+		// 	write_psu_fan_led(TOTAL_FANS, PSU_LED_RED);
+		// else
+		// 	write_psu_fan_led(TOTAL_FANS, PSU_LED_GREEN);
 		psu_led_color = 0;
 		/* if everything is fine, restart the watchdog countdown. If this process
 		 * is terminated, the persistent watchdog setting will cause the system
