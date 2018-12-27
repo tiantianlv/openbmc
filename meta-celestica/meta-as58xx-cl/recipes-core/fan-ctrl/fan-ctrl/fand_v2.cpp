@@ -2429,7 +2429,7 @@ int main(int argc, char **argv) {
 				if(fantray->present == 0) {
 					fan_failure++;
 				}
-				else if((fantray->failed > 0) || (fantray->direction != direction)) {
+				else if((fantray->failed > 0) || ((fantray->direction != direction) && (fan < TOTAL_FANS))) {
 					fan_failure++;
 				}
 
