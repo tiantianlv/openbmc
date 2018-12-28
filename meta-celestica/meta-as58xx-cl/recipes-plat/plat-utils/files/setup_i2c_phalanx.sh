@@ -143,7 +143,8 @@ i2c_device_add 39 0x56 24c64 #Fan Board EEPROM
 i2c_device_add 39 0x48 tmp75
 i2c_device_add 39 0x49 tmp75
 
-
+#isl68l38 output voltage
+setup_isl68137.sh
 #Initialize PCA9506 GPIOs
 setup_pca9506.sh
 

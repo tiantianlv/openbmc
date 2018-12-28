@@ -26,6 +26,7 @@ SRC_URI = "file://ast-functions \
            file://setup_i2c_fishbone.sh \
            file://setup_i2c_phalanx.sh \
            file://setup_pca9506.sh \
+           file://setup_isl68137.sh \
            file://setup_module.sh \
            file://rsyslog_config.sh \
            file://wedge_power.sh \
@@ -69,6 +70,7 @@ do_install() {
   install -m 0755 wedge_power.sh ${D}${localbindir}/wedge_power.sh
   install -m 0755 board-utils.sh ${D}${localbindir}/board-utils.sh
   install -m 755 setup_pca9506.sh ${D}${localbindir}/setup_pca9506.sh
+  install -m 755 setup_isl68137.sh ${D}${localbindir}/setup_isl68137.sh
   install -m 755 power_monitor_fishbone.py ${D}${localbindir}/power_monitor_fishbone.py
   install -m 755 power_monitor_phalanx.py ${D}${localbindir}/power_monitor_phalanx.py
   

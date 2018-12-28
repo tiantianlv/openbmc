@@ -200,18 +200,18 @@ set_value 23 45 curr1_min 0
 
 val=$(get_hwmon_id 17 60 in1_min)
 if [ "$val" -gt "0" ] ; then
-	set_hwmon_value 17 60 $val in1_min 10000
-	set_hwmon_value 17 60 $val in1_max 14000
-	set_hwmon_value 17 60 $val in2_min 850
-	set_hwmon_value 17 60 $val in2_max 950
+	set_hwmon_value 17 60 $val in1_min 11400
+	set_hwmon_value 17 60 $val in1_max 12600
+	set_hwmon_value 17 60 $val in2_min 720
+	set_hwmon_value 17 60 $val in2_max 930
 	set_hwmon_value 17 60 $val temp1_max_hyst 85000
 	set_hwmon_value 17 60 $val temp1_max 125000
-	set_hwmon_value 17 60 $val power1_max 45000000
-	set_hwmon_value 17 60 $val power2_max 45000000
+	set_hwmon_value 17 60 $val power1_max 350000000
+	set_hwmon_value 17 60 $val power2_max 350000000
 	set_hwmon_value 17 60 $val curr1_min 0
-	set_hwmon_value 17 60 $val curr1_max 3750
+	set_hwmon_value 17 60 $val curr1_max 31000
 	set_hwmon_value 17 60 $val curr2_min 0
-	set_hwmon_value 17 60 $val curr2_max 50000
+	set_hwmon_value 17 60 $val curr2_max 4100000
 fi
 
 #PSU1
