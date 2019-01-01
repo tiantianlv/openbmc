@@ -400,10 +400,10 @@ def main():
 		if func:
 			func(item)
 	while 1:
+		time.sleep(MONITOR_POLL_TIME)
 		psu_monitor(MonitorItem[0])
 		ir358x_monitor(MonitorItem[1])
 		temp_monitor(MonitorItem[2])
-		time.sleep(MONITOR_POLL_TIME)
 
 		
 

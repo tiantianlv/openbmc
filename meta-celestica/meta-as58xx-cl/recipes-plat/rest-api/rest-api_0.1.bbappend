@@ -22,6 +22,7 @@ SRC_URI += " \
     file://rest-api-1/rest_raw.py \
     file://rest-api-1/rest_temp.py \
     file://rest-api-1/rest_syslog.py \
+    file://rest-api-1/rest_watchdog.py \
     file://board_endpoint.py \
     file://boardroutes.py \
     file://board_setup_routes.py \
@@ -40,6 +41,7 @@ binfiles1 += " \
     rest_raw.py \
     rest_temp.py \
     rest_syslog.py \
+    rest_watchdog.py \
     "
 
 binfiles += " \

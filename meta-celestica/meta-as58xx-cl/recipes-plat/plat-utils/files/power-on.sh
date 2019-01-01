@@ -16,9 +16,21 @@
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 
 if /usr/local/bin/boot_info.sh |grep "Slave Flash" ; then
+    echo "BMC boot from Slave flash"
+    logger "BMC boot from Slave flash"
     sys_led yellow on #sysled light yellow
 else
+    echo "BMC boot from Master flash"
+    logger "BMC boot from Master flash"
     sys_led green on #sysled light green
+fi
+
+if /usr/local/bin/wedge_power.sh status |grep "on"; then
+    echo "COMe is power on already"
+else
+    echo "COMe is power off, power on"
+    logger "COMe is power off, power on"
+    /usr/local/bin/wedge_power.sh on
 fi
 
 #Set BMC login timeout

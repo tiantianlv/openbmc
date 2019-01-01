@@ -43,6 +43,7 @@ SRC_URI = "file://ast-functions \
            file://mount_emmc.sh \
            file://us_monitor.sh \
            file://start_us_monitor.sh \
+           file://version_dump \
            file://COPYING \
           "
 
@@ -103,6 +104,7 @@ do_install() {
 
   install -m 0755 fru-util ${D}${localbindir}/fru-util
   install -m 755 come_power.sh ${D}${localbindir}/come_power.sh
+  install -m 755 version_dump ${D}${localbindir}/version_dump
 }
 
 FILES_${PN} += "/usr/local ${sysconfdir}"

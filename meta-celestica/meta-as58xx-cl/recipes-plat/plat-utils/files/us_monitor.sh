@@ -326,6 +326,35 @@ come_mca_err_monitor() {
     return 0
 }
 
+come_wdt_monitor() {
+    if [ -f "/tmp/watchdog" ]; then
+        ((val=$(cat /tmp/watchdog)))
+        if [ $val -eq 0 ]; then
+            logger "Disable COMe watchdog"
+            come_wdt_enable=0
+            come_wdt_count=0
+            rm /tmp/watchdog
+            return 0
+        elif [ $come_wdt_count -eq 0 ]; then
+            if [ $come_wdt_enable -eq 0 ]; then
+                logger "Enable COMe watchdog"
+            fi
+            come_wdt_enable=1
+            come_wdt_count=$(($val/4+1))
+            rm /tmp/watchdog
+        fi
+    fi
+
+    if [ $come_wdt_enable -eq 1 ]; then
+        if [ $come_wdt_count -gt 0 ]; then
+            come_wdt_count=$(($come_wdt_count-1))
+        else
+            logger "COMe maybe hang or OOB is disconnect!"
+            come_wdt_enable=0
+        fi
+    fi
+}
+
 psu_status_init
 come_rest_status 2
 come_rst_st=$?
@@ -336,8 +365,12 @@ come_val=0
 bios_status=0
 aer_error=0
 mca_error=0
+come_wdt_count=0
+come_wdt_enable=0
+
 echo 70000 >/sys/bus/i2c/devices/i2c-7/7-004d/hwmon/hwmon3/temp1_max
 echo 60000 >/sys/bus/i2c/devices/i2c-7/7-004d/hwmon/hwmon3/temp1_max_hyst
+
 while true; do
 	for((i = 0; i < $PSU_NUM; i++))
 	do
@@ -377,6 +410,9 @@ while true; do
     #COMe MCA error monitor
     come_mca_err_monitor $mca_error
     mca_error=$?
+
+    #COMe hang watchdog monitor
+    come_wdt_monitor
 
     usleep 500000
 done
