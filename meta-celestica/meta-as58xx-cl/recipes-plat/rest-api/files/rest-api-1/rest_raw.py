@@ -22,12 +22,16 @@ def raw_action(data):
     result = []
     fresult = []
     cmd = data["data"]
+    timeout = 10
+    if len(data) > 1:
+        timeout = data["timeout"]
+
     proc = subprocess.Popen([cmd],
                             shell=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)
     try:
-        data, err = bmc_command.timed_communicate(proc)
+        data, err = bmc_command.timed_communicate(proc, int(timeout))
         data = data.decode()
     except bmc_command.TimeoutError as ex:
         data = ex.output
