@@ -106,10 +106,10 @@
 #define FAN_DIR_FAULT 0
 #define FAN_DIR_B2F 1
 #define FAN_DIR_F2B 2
-#define THERMAL_DIR_F2B_STR "R1241-F9001-01"
-#define THERMAL_DIR_B2F_STR "R1241-F9001-02"
-#define FAN_DIR_F2B_STR "R1241-F9001-01"
-#define FAN_DIR_B2F_STR "R1241-F9001-02"
+#define THERMAL_DIR_F2B_STR "R1241-F0001"
+#define THERMAL_DIR_B2F_STR "R1241-F0002"
+#define FAN_DIR_F2B_STR "R1241-F9001"
+#define FAN_DIR_B2F_STR "R1241-F9002"
 #define DELTA_PSU_DIR_F2B_STR "DPS-1100FBE"
 #define DELTA_PSU_DIR_B2F_STR "DSP-1100AB-15B"
 #define ACBEL_PSU_DIR_F2B_STR "FSJ026-A20G"
@@ -2342,8 +2342,10 @@ int get_thermal_direction(void)
 			syslog(LOG_WARNING, "thermal direction changed to [Front to rear]");
 			return FAN_DIR_F2B;
 		} else if(find_sub_string(buffer, THERMAL_DIR_B2F_STR, sizeof(buffer))) {
-			syslog(LOG_WARNING, "thermal direction changed to [Rear to front]");
-			return FAN_DIR_B2F;
+			syslog(LOG_WARNING, "thermal direction changed to [Front to rear]");
+			return FAN_DIR_F2B;
+			// syslog(LOG_WARNING, "thermal direction changed to [Rear to front]");
+			// return FAN_DIR_B2F;
 		}
 	}
 	syslog(LOG_WARNING, "thermal module direction unrecognized");
