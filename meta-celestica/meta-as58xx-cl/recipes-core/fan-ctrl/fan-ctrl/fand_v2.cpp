@@ -75,7 +75,7 @@
 
 #define ALARM_TEMP_THRESHOLD 1
 #define ALARM_START_REPORT 3
-#define WARN_RECOVERY_COUNT 36 //remain 5mins to recovery nomal speed
+#define WARN_RECOVERY_COUNT 50 //remain 5mins to recovery nomal speed
 
 #define CRITICAL_TEMP_HYST 2
 
@@ -92,7 +92,7 @@
 #define SHUTDOWN_DELAY_TIME 72 /*if trigger shutdown event, delay 6mins to shutdown */
 
 #define BAD_TEMP (-60)
-#define ERROR_TEMP_MAX 5
+#define ERROR_TEMP_MAX 3
 
 #define FAN_FAIL_COUNT 4
 #define FAN_FAIL_RPM 1000
@@ -2375,8 +2375,9 @@ int main(int argc, char **argv) {
 	policy_init();
 
 	sleep(5);  /* Give the fans time to come up to speed */
-
+	
 	while (1) {
+		syslog(LOG_DEBUG, "Test time internal");
 		fan_speed_temp = 0;
 		/* Read sensors */
 		critical_temp = read_critical_max_temp();
