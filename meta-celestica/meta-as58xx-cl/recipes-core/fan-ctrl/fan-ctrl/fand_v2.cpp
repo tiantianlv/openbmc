@@ -1983,14 +1983,14 @@ static int fancpld_watchdog_enable(void)
 		return -1;
 	}
 	usleep(11000);
-	snprintf(fullpath, PATH_CACHE_SIZE, "%s", FAN_WDT_TIME_SYSFS);
-	ret = write_sysfs_int(fullpath, FAN_WDT_TIME);
-	if(ret < 0) {
-		syslog(LOG_ERR, "failed to set fan %s, value 1",
-		FAN_WDT_TIME_SYSFS);
-		return -1;
-	}
-	usleep(11000);
+	// snprintf(fullpath, PATH_CACHE_SIZE, "%s", FAN_WDT_TIME_SYSFS);
+	// ret = write_sysfs_int(fullpath, FAN_WDT_TIME);
+	// if(ret < 0) {
+		// syslog(LOG_ERR, "failed to set fan %s, value 1",
+		// FAN_WDT_TIME_SYSFS);
+		// return -1;
+	// }
+	// usleep(11000);
 
 	return 0;
 }
