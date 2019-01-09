@@ -76,7 +76,7 @@
 
 #define ALARM_TEMP_THRESHOLD 1
 #define ALARM_START_REPORT 3
-#define WARN_RECOVERY_COUNT 43 //remain 5mins to recovery nomal speed
+#define WARN_RECOVERY_COUNT 40 //remain 5mins to recovery nomal speed
 
 #define CRITICAL_TEMP_HYST 2
 
@@ -2308,8 +2308,8 @@ static int get_fan_direction(void)
 		}
 	}
 
-	if((f2r_fan_cnt == 0) && (r2f_fan_cnt == 0))
-		syslog(LOG_ERR, "failed to get all fan direction, use default direction : Front to rear");
+	// if((f2r_fan_cnt == 0) && (r2f_fan_cnt == 0))
+	// 	syslog(LOG_ERR, "failed to get all fan direction, use default direction : Front to rear");
 	return FAN_DIR_F2B;
 	if(f2r_fan_cnt >= r2f_fan_cnt) {
 		// syslog(LOG_INFO, "direction: [Front to rear]");
@@ -2552,7 +2552,7 @@ int main(int argc, char **argv) {
 	sleep(5);  /* Give the fans time to come up to speed */
 
 	while (1) {
-		syslog(LOG_DEBUG, "Test time internal");
+		// syslog(LOG_DEBUG, "Test time internal");
 		fan_speed_temp = 0;
 		/* Read sensors */
 		critical_temp = read_critical_max_temp();

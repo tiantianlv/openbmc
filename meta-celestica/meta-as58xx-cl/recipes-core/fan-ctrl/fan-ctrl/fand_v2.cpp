@@ -2377,7 +2377,7 @@ int main(int argc, char **argv) {
 	sleep(5);  /* Give the fans time to come up to speed */
 	
 	while (1) {
-		syslog(LOG_DEBUG, "Test time internal");
+		// syslog(LOG_DEBUG, "Test time internal");
 		fan_speed_temp = 0;
 		/* Read sensors */
 		critical_temp = read_critical_max_temp();
