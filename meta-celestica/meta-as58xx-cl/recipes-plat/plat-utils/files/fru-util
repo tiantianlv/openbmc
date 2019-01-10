@@ -175,7 +175,7 @@ psu_info() {
 				echo "Present: Absent"
 				return 1
 			fi
-			if [ $(eeprom_data -d psu$1 -c /etc/eeprom-data/eeprom_phalanx.xml | grep 'DPS-1100FB B' > /dev/null; echo $?) == 0 ]; then
+			if [ $(eeprom_data -d psu$1 -c /etc/eeprom-data/eeprom_phalanx.xml | grep 'DPS-1100' > /dev/null; echo $?) == 0 ]; then
 				eeprom_data -d psu$1 -c /etc/eeprom-data/eeprom_phalanx.xml 2>/dev/null
 			else
 				fruid-util psu$1 2>/dev/null
@@ -191,8 +191,8 @@ psu_info() {
 				echo "Present: Absent"
 				return 1
 			fi
-			if [ $(eeprom_data -d psu1 -c /etc/eeprom-data/eeprom_fishbone.xml | grep 'DPS-1100FB B' > /dev/null; echo $?) == 0 ]; then
-				eeprom_data -d psu1 -c /etc/eeprom-data/eeprom_fishbone.xml 2>dev/null
+			if [ $(eeprom_data -d psu1 -c /etc/eeprom-data/eeprom_fishbone.xml | grep 'DPS-1100' > /dev/null; echo $?) == 0 ]; then
+				eeprom_data -d psu1 -c /etc/eeprom-data/eeprom_fishbone.xml 2>/dev/null
 			else
 				fruid-util psu1 2>/dev/null
 			fi
@@ -203,7 +203,7 @@ psu_info() {
 				echo "Present: Absent"
 				return 1
 			fi
-			if [ $(eeprom_data -d psu2 -c /etc/eeprom-data/eeprom_fishbone.xml | grep 'DPS-1100FB B' > /dev/null; echo $?) == 0 ]; then
+			if [ $(eeprom_data -d psu2 -c /etc/eeprom-data/eeprom_fishbone.xml | grep 'DPS-1100' > /dev/null; echo $?) == 0 ]; then
 				eeprom_data -d psu2 -c /etc/eeprom-data/eeprom_fishbone.xml 2>/dev/null
 			else
 				fruid-util psu2 2>/dev/null

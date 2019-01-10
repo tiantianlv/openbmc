@@ -30,7 +30,7 @@ AVS_ADDR=0x30
 ((last_output = 0))
 while true; do
     i2cset -f -y $FPGA_BUS $FPGA_ADDR 0x0 $AVS_ADDR
-    ((value = $(i2cget -f -y 5 0x36 0x30) ))
+    ((value = $(i2cget -f -y $FPGA_BUS $FPGA_ADDR 0x0) ))
     # ((value = (value & 0xff00) >> 8))
     if [ $value -gt $MAX_VALUE ]; then
         ((value=$MAX_VALUE))
