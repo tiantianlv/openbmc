@@ -108,8 +108,8 @@
 #define FAN_DIR_F2B 2
 #define THERMAL_DIR_F2B_STR "R1241-F0001"
 #define THERMAL_DIR_B2F_STR "R1241-F0002"
-#define FAN_DIR_F2B_STR "R1241-F9001"
-#define FAN_DIR_B2F_STR "R1241-F9002"
+#define FAN_DIR_F2B_STR "R1240-G0009"
+#define FAN_DIR_B2F_STR "R1240-G0009"
 #define DELTA_PSU_DIR_F2B_STR "DPS-1100FB"
 #define DELTA_PSU_DIR_B2F_STR "DPS-1100AB"
 #define ACBEL_PSU_DIR_F2B_STR "FSJ026-A20G"
@@ -294,6 +294,23 @@ static struct sensor_info_sysfs switchboard_onboard_u148 = {
   .t2 = 0,
   .old_pwm = 0,
   .setpoint = 86,
+  .p = 3,
+  .i = 0.3,
+  .d = 0.3,
+  .min_output = FAN_MIN,
+  .max_output = FAN_MAX,
+  .read_sysfs = &read_temp_directly_sysfs,
+};
+
+static struct sensor_info_sysfs switchboard_inlet_sensor = {
+  .prefix = "/sys/bus/i2c/devices/i2c-0/0-000d",
+  .suffix = "temp1_input",
+  .error_cnt = 0,
+  .temp = 0,
+  .t1 = 0,
+  .t2 = 0,
+  .old_pwm = 0,
+  .setpoint = 89,
   .p = 3,
   .i = 0.3,
   .d = 0.3,
@@ -585,8 +602,8 @@ static struct board_info_stu_sysfs board_info[] = {
 		.warn_count = 0,
 		.recovery_count = 0,
 		.flag = PID_CTRL_BIT,
-		.critical = &switchboard_onboard_u148,
-		.alarm = &switchboard_onboard_u148,
+		.critical = &switchboard_inlet_sensor,
+		.alarm = &switchboard_inlet_sensor,
 	},
 	{
 		.name = "cpu_inlet",
@@ -624,8 +641,8 @@ static struct board_info_stu_sysfs board_info[] = {
 		.warn_count = 0,
 		.recovery_count = 0,
 		.flag = PID_CTRL_BIT,
-		.critical = &switchboard_onboard_u148,
-		.alarm = &switchboard_onboard_u148,
+		.critical = &switchboard_inlet_sensor,
+		.alarm = &switchboard_inlet_sensor,
 	},
 	{
 		.name = "cpu_inlet",
