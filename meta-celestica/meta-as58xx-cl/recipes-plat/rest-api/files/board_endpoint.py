@@ -29,6 +29,7 @@ import rest_raw
 import rest_temp
 import rest_syslog
 import rest_watchdog
+import rest_userpassword
 from rest_utils import dumps_bytestr, get_endpoints
 
 class boardApp_Handler:
@@ -121,8 +122,12 @@ class boardApp_Handler:
         data = await request.json()
         return web.json_response(rest_syslog.syslog_action(data), dumps=dumps_bytestr)
 
-
     # Handler for watchdog resource endpoint
     async def rest_wdt_act_hdl(self, request):
         data = await request.json()
         return web.json_response(rest_watchdog.wdt_action(data), dumps=dumps_bytestr)
+    
+    # Handler for user password resource endpoint
+    async def rest_userpassword_act_hdl(self, request):
+        data = await request.json()
+        return web.json_response(rest_userpassword.userpassword_action(data), dumps=dumps_bytestr)
