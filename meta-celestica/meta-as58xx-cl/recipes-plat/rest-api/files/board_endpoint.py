@@ -68,6 +68,11 @@ class boardApp_Handler:
     async def rest_bmc_hdl(self, request):
         return web.json_response(rest_bmc.get_bmc(), dumps=dumps_bytestr)
 
+    # Handler for sys/bmc resource endpoint
+    async def rest_bmc_act_hdl(self, request):
+        data = await request.json()
+        return web.json_response(rest_bmc.bmc_action(data), dumps=dumps_bytestr)
+
     # Handler for sys/sensors resource endpoint
     async def rest_sensors_hdl(self, request):
         return web.json_response(rest_sensors.get_sensors(), dumps=dumps_bytestr)
