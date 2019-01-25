@@ -101,7 +101,7 @@ i2c_device_add 18 0x71 ir3584  #IR3584
 i2c_device_add 24 0x50 24c32 #PSU1 FRU EEPROM
 ((psu_present=$(cat /sys/bus/i2c/devices/i2c-0/0-000d/psu_l_present | head -n 1)))
 ((psu_power=$(cat /sys/bus/i2c/devices/i2c-0/0-000d/psu_l_status | head -n 1)))
-if [ $psu_present = 1 ]; then
+if [ $psu_present = 0 ]; then
     if [ $psu_power = 1 ]; then
         i2c_device_add 24 0x58 dps1100 #PSU2 PMBUS
     fi
@@ -110,7 +110,7 @@ fi
 i2c_device_add 25 0x51 24c32 #PSU2 FRU EEPROM
 ((psu_present=$(cat /sys/bus/i2c/devices/i2c-0/0-000d/psu_r_present | head -n 1)))
 ((psu_power=$(cat /sys/bus/i2c/devices/i2c-0/0-000d/psu_r_status | head -n 1)))
-if [ $psu_present = 1 ]; then
+if [ $psu_present = 0 ]; then
     if [ $psu_power = 1 ]; then
         i2c_device_add 25 0x59 dps1100 #PSU1 PMBUS
     fi
