@@ -76,7 +76,7 @@
 
 #define ALARM_TEMP_THRESHOLD 1
 #define ALARM_START_REPORT 3
-#define WARN_RECOVERY_COUNT 40 //remain 5mins to recovery nomal speed
+#define WARN_RECOVERY_COUNT 90 //remain 5mins to recovery nomal speed
 
 #define CRITICAL_TEMP_HYST 2
 
@@ -93,9 +93,9 @@
 #define SHUTDOWN_DELAY_TIME 72 /*if trigger shutdown event, delay 6mins to shutdown */
 
 #define BAD_TEMP (-60)
-#define ERROR_TEMP_MAX 2
+#define ERROR_TEMP_MAX 5
 
-#define FAN_FAIL_COUNT 6
+#define FAN_FAIL_COUNT 9
 #define FAN_FAIL_RPM 1000
 #define FAN_FRONTT_SPEED_MAX 18000
 #define FAN_REAR_SPEED_MAX 18000
