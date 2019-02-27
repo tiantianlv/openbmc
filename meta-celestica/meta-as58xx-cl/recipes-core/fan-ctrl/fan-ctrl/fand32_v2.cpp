@@ -1741,6 +1741,8 @@ static int write_psu_fan_speed(const int fan, int value)
 			continue;
 		} else if(ret == 1) {
 			fantray->present = 1;
+			if(fantray->status == 0) //power off
+				continue;
 		} else {
 			continue;
 		}
@@ -2332,6 +2334,14 @@ static int policy_init(void)
 	return 0;
 }
 
+/* Gracefully shut down on receipt of a signal */
+void fand_interrupt(int sig)
+{
+	start_watchdog(0);
+	syslog(LOG_WARNING, "Shutting down fand on signal %s", strsignal(sig));
+	exit(3);
+}
+
 int main(int argc, char **argv) {
 	int critical_temp;
 	int old_temp = -1;
@@ -2362,6 +2372,14 @@ int main(int argc, char **argv) {
 
 	// Initialize path cache
 	init_path_cache();
+
+	struct sigaction sa;
+	sa.sa_handler = fand_interrupt;
+	sa.sa_flags = 0;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGUSR1, &sa, NULL);
 
 	// Start writing to syslog as early as possible for diag purposes.
 	openlog("fand32_v2", LOG_CONS, LOG_DAEMON);
