@@ -327,7 +327,7 @@ come_mca_err_monitor() {
         return 2
     fi
 
-    if [ $val -eq 1 -a $1 -eq 2 ]; then
+    if [ $val -eq 1 -a $1 -ne 0 ]; then
         logger "CATERR# recovers asserted"
         return 0
     fi
