@@ -256,6 +256,9 @@ def bmc_action(data):
         err = ex.error
 
     if data != '' and data != '\n':
+        (data, _) = Popen('echo {}: failed, firmware: {}, time: $(date) >> '
+                    '/var/log/bmc_upgrade.log'.format(flash, file_name),
+                    shell=True, stdout=PIPE).communicate()
         return {"result": data}
     else:
         if reboot == 1:
@@ -263,7 +266,13 @@ def bmc_action(data):
             return {"result": "success, and reboot BMC"}
         else:
             if flash == 'master':
+                (data, _) = Popen('echo {}: success, firmware: {}, time: $(date) >> '
+                            '/var/log/bmc_upgrade.log'.format(flash, file_name),
+                            shell=True, stdout=PIPE).communicate()
                 return {"result": "success! Do you need to reboot BMC?"}
             else:
+                (data, _) = Popen('echo {}: success, firmware: {}, time: $(date) >> '
+                            '/var/log/bmc_upgrade.log'.format(flash, file_name),
+                            shell=True, stdout=PIPE).communicate()
                 return {"result": "success"}
 
