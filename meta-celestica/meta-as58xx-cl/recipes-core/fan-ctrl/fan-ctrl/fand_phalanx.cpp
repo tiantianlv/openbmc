@@ -1986,6 +1986,8 @@ int fan_speed_okay(const int fan, int speed, const int slop)
 		return 0;
 	} else if(ret == 1) {
 		fantray->present = 1;
+	} else {
+		return 0;
 	}
 	if(fantray->direction != direction)
 		return 0;
@@ -2110,6 +2112,8 @@ int psu_speed_okay(const int fan, int speed, const int slop)
 		fantray->present = 1;
 		if(fantray->status == 0)
 			return 0;
+	} else {
+		return 0;
 	}
 
 	snprintf(buf, PATH_CACHE_SIZE, "%s/%s", fan_info->rear_fan_prefix, fan_info->front_fan_prefix);
