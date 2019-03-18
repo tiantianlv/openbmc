@@ -84,7 +84,10 @@ def get_bmc():
                        shell=True, stdout=PIPE).communicate()
     data = data.decode()
     adata = data.split()
-    disk_usage = 'EMMC: {}K total, {}K used, {}K available, {} use'.format(adata[1], adata[2], adata[3], adata[4])
+    if len(adata) == 4:
+        disk_usage = 'EMMC: {}K total, {}K used, {}K available, {} use'.format(adata[1], adata[2], adata[3], adata[4])
+    else:
+        disk_usage = ""
 
     # Get OpenBMC version
     version = ""
