@@ -1601,7 +1601,7 @@ static int set_fan_sysfs(int fan, int value)
 
 	if(fantray->direction != direction) {
 		if(fantray->direction != FAN_DIR_FAULT)
-			value = 26;
+			value = 89;
 		sys_fan_led_color |= (0x1 << fan);
 	}
 	snprintf(fullpath, PATH_CACHE_SIZE, "%s/%s", fan_info->prefix, fan_info->pwm_prefix);

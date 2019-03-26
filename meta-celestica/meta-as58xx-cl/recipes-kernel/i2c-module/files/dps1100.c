@@ -167,6 +167,22 @@ static const struct i2c_device_id dps1100_id[] = {
 	{ }
 };
 
+enum PSU {
+	PSU1 = 1,
+	PSU2,
+};
+/*
+ * 0 is not OK, 1 is OK
+ */
+extern int psu_ok(int bus, unsigned short addr);
+static ssize_t dps1100_ok(struct i2c_client *client)
+{
+	if(client == NULL)
+		return 0;
+	printk(KERN_ALERT "bus:%d\taddr:%x\n",client->adapter->nr, client->addr);
+	return psu_ok(client->adapter->nr, client->addr);
+}
+
 static ssize_t dps1100_shutdown_show(struct device *dev,
         struct device_attribute *attr, char *buf)
 {
@@ -174,6 +190,9 @@ static ssize_t dps1100_shutdown_show(struct device *dev,
 	struct i2c_client *client = to_i2c_client(dev);
 	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
 	struct dps1100_data *data = TO_DPS1100_DATA(info);
+
+	if(dps1100_ok(client) != 1)
+		return -1;
 
 	//client->flags |= I2C_CLIENT_PEC;
 	read_val = pmbus_read_byte_data(client, 0, DPS1100_OP_REG_ADDR);
@@ -197,6 +216,9 @@ static int dps1100_shutdown_store(struct device *dev,
 	struct i2c_client *client = to_i2c_client(dev);
 	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
 	struct dps1100_data *data = TO_DPS1100_DATA(info);
+
+	if(dps1100_ok(client) != 1)
+		return -1;
 
 	//client->flags |= I2C_CLIENT_PEC;
 	if (buf == NULL) {
@@ -231,6 +253,9 @@ static ssize_t dps1100_reg_byte_show(struct device *dev,
 	struct sysfs_attr_t *sysfs_attr = TO_I2C_SYSFS_ATTR(attr);
 	struct i2c_dev_attr_t *dev_attr = sysfs_attr->i2c_attr;
 
+	if(dps1100_ok(client) != 1)
+		return -1;
+
 	//client->flags |= I2C_CLIENT_PEC;
 	read_val = pmbus_read_byte_data(client, 0, dev_attr->reg);
 	if(read_val < 0)
@@ -248,6 +273,9 @@ static int dps1100_reg_byte_store(struct device *dev,
 	struct i2c_client *client = to_i2c_client(pdata->dev);
 	struct sysfs_attr_t *sysfs_attr = TO_I2C_SYSFS_ATTR(attr);
 	struct i2c_dev_attr_t *dev_attr = sysfs_attr->i2c_attr;
+
+	if(dps1100_ok(client) != 1)
+		return -1;
 
 	//client->flags |= I2C_CLIENT_PEC;
 	if (buf == NULL) {
@@ -277,6 +305,9 @@ static ssize_t dps1100_reg_word_show(struct device *dev,
 	struct sysfs_attr_t *sysfs_attr = TO_I2C_SYSFS_ATTR(attr);
 	struct i2c_dev_attr_t *dev_attr = sysfs_attr->i2c_attr;
 
+	if(dps1100_ok(client) != 1)
+		return -1;
+
 	//client->flags |= I2C_CLIENT_PEC;
 	read_val = pmbus_read_word_data(client, 0, dev_attr->reg);
 	if (read_val < 0)
@@ -296,6 +327,9 @@ static int dps1100_reg_word_store(struct device *dev,
 	struct i2c_client *client = to_i2c_client(pdata->dev);
 	struct sysfs_attr_t *sysfs_attr = TO_I2C_SYSFS_ATTR(attr);
 	struct i2c_dev_attr_t *dev_attr = sysfs_attr->i2c_attr;
+
+	if(dps1100_ok(client) != 1)
+		return -1;
 
 	//client->flags |= I2C_CLIENT_PEC;
 	if (buf == NULL) {

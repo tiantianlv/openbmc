@@ -29,6 +29,7 @@ SRC_URI = "file://Makefile \
            file://syscpld_fishbone.c \
            file://fancpld_phalanx.c \
            file://syscpld_phalanx.c \
+           file://syscpld.c \
            file://COPYING \
           "
 
