@@ -69,6 +69,8 @@ static const struct i2c_device_id syscpld_id[] = {
 	{ }
 };
 
+static int board_type;
+
 static int temp_value_rw(const char *name, int opcode, int value)
 {
 	int *p = NULL;
@@ -1349,8 +1351,7 @@ static int syscpld_probe(struct i2c_client *client,
     syscpld_client = client;
     printk(KERN_DEBUG "syscpld_client:%p\n", syscpld_client);
     //check board type then add different file nodes
-    int board_type = i2c_smbus_read_byte_data(syscpld_client, 0x2);
-    printk(KERN_DEBUG "board_type: %d\n", board_type);
+    board_type = i2c_smbus_read_byte_data(syscpld_client, 0x2);
     if(board_type == 1) {
         printk(KERN_INFO "Phalanx CPLD driver loading\n");
         n_attrs = sizeof(syscpld_attr_table_phalanx) / sizeof(syscpld_attr_table_phalanx[0]);
@@ -1373,48 +1374,49 @@ static int syscpld_probe(struct i2c_client *client,
  */
 int psu_ok(int bus, unsigned short addr)
 {
-  printk(KERN_INFO "%s\n",__func__);
+	int ret = 0;
+	i2c_dev_data_st *data;
+	int psu_status;
+
 	if(syscpld_client == NULL)
 		return -ENODEV;
-	int ret = 0;
-	i2c_dev_data_st *data = i2c_get_clientdata(syscpld_client);
+
+	data = i2c_get_clientdata(syscpld_client);
 	mutex_lock(&data->idd_lock);
-  int board_type = i2c_smbus_read_byte_data(syscpld_client, 0x2);
-  printk(KERN_ALERT "board_type:%d\n",board_type);
+	//printk(KERN_ALERT "[zmzhan]board_type:%d, bus=%d, addr=0x%x\n",board_type, bus, addr);
 	/* get psu present & power status */
-  if(board_type == 1) {
-      int present_val = i2c_smbus_read_byte_data(syscpld_client, 0x5f);
-      int power_val = i2c_smbus_read_byte_data(syscpld_client, 0x60);
-      if(bus == 27 && addr == 0x58) {
-      	if((present_val & 0x8 == 0x0) && (power_val & 0x8))
-      		ret = 1;
-      } else if (bus == 26 && addr == 0x58) {
-      	if((present_val & 0x4 == 0x0) && (power_val & 0x4))
-      		ret = 1;
-      } else if (bus == 25 && addr == 0x58) {
-      	if((present_val & 0x2 == 0x0) && (power_val & 0x2))
-      		ret = 1;
-      } else if (bus == 24 && addr == 0x58) {
-      	if((present_val & 0x1 == 0x0) && (power_val & 0x1))
-      		ret = 1;
-      } else {
-      	ret = 0;
-      }
-  } else {
-    int psu_status = i2c_smbus_read_byte_data(syscpld_client, 0x60);
-		printk(KERN_ALERT "psu_status:%x\t%d-%x",psu_status,bus,addr);
-  	if(bus == 25 && addr == 0x59) {
-	    if(psu_status & 0x5 == 0x1)
-		    ret = 1;
-	  } else if (bus == 24 && addr == 0x58) {
-	    if(psu_status & 0xA == 0x2)
-		    ret = 1;
-	  } else {
-	    ret = 0;
-	  }
-  }
-  mutex_unlock(&data->idd_lock);
-  printk(KERN_ALERT "ret:%d\n", ret);
+	if(board_type == 1) {
+		int present_val = i2c_smbus_read_byte_data(syscpld_client, 0x5f);
+		int power_val = i2c_smbus_read_byte_data(syscpld_client, 0x60);
+		if(bus == 27 && addr == 0x58) {
+            if(((present_val & 0x8) == 0x0) && (power_val & 0x8))
+                ret = 1;
+		} else if (bus == 26 && addr == 0x58) {
+			if(((present_val & 0x4 == 0x0)) && (power_val & 0x4))
+				ret = 1;
+		} else if (bus == 25 && addr == 0x58) {
+			if(((present_val & 0x2 == 0x0)) && (power_val & 0x2))
+				ret = 1;
+		} else if (bus == 24 && addr == 0x58) {
+			if(((present_val & 0x1 == 0x0)) && (power_val & 0x1))
+				ret = 1;
+		} else {
+			ret = 0;
+		}
+	} else {
+		psu_status = i2c_smbus_read_byte_data(syscpld_client, 0x60);
+		if(bus == 25 && addr == 0x59) {
+			if((psu_status & 0x5) == 0x1)
+				ret = 1;
+		} else if (bus == 24 && addr == 0x58) {
+			if((psu_status & 0xa) == 0x2)
+				ret = 1;
+		} else {
+			ret = 0;
+		}
+		//printk(KERN_ALERT "[zmzhan]psu_status=0x%x, ret=%d\n", psu_status, ret);
+	}
+	mutex_unlock(&data->idd_lock);
 	return ret;
 }
 EXPORT_SYMBOL(psu_ok);
@@ -1427,51 +1429,38 @@ EXPORT_SYMBOL(psu_ok);
  */
 int reset_i2c_mux(int bus) 
 {
+	int ret = 0;
+	i2c_dev_data_st *data;
+	int reg_val1, reg_val2;
+
 	if(syscpld_client == NULL)
 		return -ENODEV;
-	int ret = 0;
-	i2c_dev_data_st *data = i2c_get_clientdata(syscpld_client);
-	int reg_val;
+
+	printk(KERN_ALERT "[zmzhan]bus %d is huang, try to reset the PCA9548\n", bus);
+	data = i2c_get_clientdata(syscpld_client);
 	mutex_lock(&data->idd_lock);
-	/* get psu present & power status */
-	reg_val = i2c_smbus_read_byte_data(syscpld_client, 0x04);
-	switch(bus){
-		case 16:
-		case 17:
-		case 18:
-		case 19:
-		case 20:
-		case 21:
-		case 22:
-		case 23:
-			break;
-		//psu
-		case 24:
-		case 25:
-		case 26:
-		case 27:
-		case 28:
-		case 29:
-		case 30:
-		case 31:
-			reg_val &= 0xFB;
-			break;
-		//Fan
-		case 32:
-		case 33:
-		case 34:
-		case 35:
-		case 36:
-		case 37:
-		case 38:
-		case 39:
-			reg_val &= 0x7F;
-			break;
-		default:
-			break;
+	/* get reset reigster status */
+	reg_val1 = i2c_smbus_read_byte_data(syscpld_client, 0x04);
+	reg_val2 = i2c_smbus_read_byte_data(syscpld_client, 0x05);
+	if(bus >= 9 && bus <= 15) {
+		reg_val2 &= ~(0x1 << 1); //connect to FRU
+	} else if(bus >= 16 && bus <= 23) {
+		if(board_type == 1) //Phalanx
+			reg_val2 &= ~(0x1 << 3); //connect to power chip
+	} else if(bus >= 24 && bus <= 31) {
+		if(board_type == 1) //Phalanx
+			reg_val2 &= ~(0x1 << 0);
+		else
+			reg_val1 &= ~(0x1 << 2); //connect to PSU
+	} else if(bus >= 32 && bus <= 39) {
+		reg_val1 &= ~(0x1 << 7); //connect to FAN board
+	} else if(bus >= 42 && bus <= 49) {
+		reg_val2 &= ~(0x1 << 2); //connect to temp
 	}
-	i2c_smbus_write_byte_data(syscpld_client, 0x04, reg_val);
+	i2c_smbus_write_byte_data(syscpld_client, 0x04, reg_val1);
+	i2c_smbus_write_byte_data(syscpld_client, 0x05, reg_val2);
 	mutex_unlock(&data->idd_lock);
+
 	return 0;
 }
 EXPORT_SYMBOL(reset_i2c_mux);

@@ -46,6 +46,7 @@
 #define DPS1100_FAN1_PWM_REG 0x3B
 #define DPS1100_FAN1_SPEED_REG 0x90
 
+#define DPS1100_I2C_REMAIN_ERROR 3
 
 #define DPS1100_WAIT_TIME		1000	/* uS	*/
 
@@ -150,8 +151,7 @@ struct sysfs_attr_t {
 struct dps1100_data {
 	int id;
 	int shutdown_state;
-	int fan1_speed;
-	int fan1_pct;
+	int error;
 	struct i2c_client *client;
 	struct dps1100_alarm_data alarm_data;
 	struct pmbus_driver_info info;
@@ -179,7 +179,7 @@ static ssize_t dps1100_ok(struct i2c_client *client)
 {
 	if(client == NULL)
 		return 0;
-	printk(KERN_ALERT "bus:%d\taddr:%x\n",client->adapter->nr, client->addr);
+
 	return psu_ok(client->adapter->nr, client->addr);
 }
 
@@ -665,6 +665,108 @@ static int dps1100_remove(struct i2c_client *client)
 	return pmbus_do_remove(client);
 }
 
+static int dps1100_pmbus_read_word_data(struct i2c_client *client, u8 page, u8 reg)
+{
+	int ret;
+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
+	struct dps1100_data *data = TO_DPS1100_DATA(info);
+
+
+	if(dps1100_ok(client) != 1)
+		return -1;
+
+	if(data->error > DPS1100_I2C_REMAIN_ERROR) {
+		printk(KERN_DEBUG "bus:%d addr:0x%x remains return error\n", client->adapter->nr, client->addr);
+		ret = -1;
+	} else {
+		ret = pmbus_read_word_data(client, page, reg);
+		//if(ret == -ETIMEDOUT) {
+		if(ret < 0) {
+			data->error++;
+			printk(KERN_DEBUG "bus:%d addr:0x%x remains return %d\n", client->adapter->nr, client->addr, ret);
+		} else {
+			data->error = 0;
+		}
+	}
+
+	return ret;
+}
+
+static int dps1100_pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg, u16 word)
+{
+	int ret;
+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
+	struct dps1100_data *data = TO_DPS1100_DATA(info);
+
+
+	if(dps1100_ok(client) != 1)
+		return -1;
+
+	if(data->error > DPS1100_I2C_REMAIN_ERROR) {
+		printk(KERN_DEBUG "bus:%d addr:0x%x remains return error\n", client->adapter->nr, client->addr);
+		ret = -1;
+	} else {
+		ret = pmbus_write_word_data(client, page, reg, word);
+		if(ret == -ETIMEDOUT) {
+			data->error++;
+		} else {
+			data->error = 0;
+		}
+	}
+
+	return ret;
+}
+
+static int dps1100_pmbus_read_byte_data(struct i2c_client *client, int page, u8 reg)
+{
+	int ret;
+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
+	struct dps1100_data *data = TO_DPS1100_DATA(info);
+
+
+	if(dps1100_ok(client) != 1)
+		return -1;
+
+	if(data->error > DPS1100_I2C_REMAIN_ERROR) {
+		printk(KERN_DEBUG "bus:%d addr:0x%x remains return error\n", client->adapter->nr, client->addr);
+		ret = -1;
+	} else {
+		ret = pmbus_read_byte_data(client, page, reg);
+		if(ret == -ETIMEDOUT) {
+			data->error++;
+		} else {
+			data->error = 0;
+		}
+	}
+
+	return ret;
+}
+
+static int dps1100_pmbus_write_byte(struct i2c_client *client, int page, u8 value)
+{
+	int ret;
+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
+	struct dps1100_data *data = TO_DPS1100_DATA(info);
+
+
+	if(dps1100_ok(client) != 1)
+		return -1;
+
+	if(data->error > DPS1100_I2C_REMAIN_ERROR) {
+		printk(KERN_DEBUG "bus:%d addr:0x%x remains return error\n", client->adapter->nr, client->addr);
+		ret = -1;
+	} else {
+		ret = pmbus_write_byte(client, page, value);
+		if(ret == -ETIMEDOUT) {
+			data->error++;
+		} else {
+			data->error = 0;
+		}
+	}
+
+	return ret;
+}
+
 static int dps1100_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
@@ -709,10 +811,10 @@ static int dps1100_probe(struct i2c_client *client,
 	  | PMBUS_HAVE_FAN12
 	  | PMBUS_HAVE_IIN | PMBUS_HAVE_TEMP2;
 #endif
-	info->read_word_data = pmbus_read_word_data;
-	info->write_word_data = pmbus_write_word_data;
-	info->read_byte_data = pmbus_read_byte_data;
-	info->write_byte = pmbus_write_byte;
+	info->read_word_data = dps1100_pmbus_read_word_data;
+	info->write_word_data = dps1100_pmbus_write_word_data;
+	info->read_byte_data = dps1100_pmbus_read_byte_data;
+	info->write_byte = dps1100_pmbus_write_byte;
 
 
 	ret = pmbus_do_probe(client, id, info);

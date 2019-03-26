@@ -2373,13 +2373,6 @@ int main(int argc, char **argv) {
 	// Initialize path cache
 	init_path_cache();
 
-	struct sigaction sa;
-	sa.sa_handler = fand_interrupt;
-	sa.sa_flags = 0;
-	sigemptyset(&sa.sa_mask);
-	sigaction(SIGTERM, &sa, NULL);
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGUSR1, &sa, NULL);
 
 	// Start writing to syslog as early as possible for diag purposes.
 	openlog("fand_v2", LOG_CONS, LOG_DAEMON);
@@ -2389,11 +2382,11 @@ int main(int argc, char **argv) {
 	syslog(LOG_DEBUG, "Starting up;  system should have %d fans.", TOTAL_FANS);
 
 	/* Start watchdog in manual mode */
-	start_watchdog(0);
+	//start_watchdog(0);
 
 	/* Set watchdog to persistent mode so timer expiry will happen independent
 	* of this process's liveliness. */
-	set_persistent_watchdog(WATCHDOG_SET_PERSISTENT);
+	//set_persistent_watchdog(WATCHDOG_SET_PERSISTENT);
 
 	fancpld_watchdog_enable();
 
@@ -2629,7 +2622,7 @@ int main(int argc, char **argv) {
 		/* if everything is fine, restart the watchdog countdown. If this process
 		 * is terminated, the persistent watchdog setting will cause the system
 		 * to reboot after the watchdog timeout. */
-		kick_watchdog();
+		//kick_watchdog();
 		usleep(11000);
 		// update_thermal_direction();
 		get_fan_direction();
