@@ -662,7 +662,7 @@ static struct board_info_stu_sysfs board_info[] = {
 
 static struct fantray_info_stu_sysfs fantray_info[] = {
   {
-    .name = "Fantray 1",
+    .name = "Fantray1",
     .present = 1,
     .read_eeprom = 1,
     .status = 1,
@@ -671,7 +671,7 @@ static struct fantray_info_stu_sysfs fantray_info[] = {
     .fan1 = fan5_info,
   },
   {
-    .name = "Fantray 2",
+    .name = "Fantray2",
     .present = 1,
     .read_eeprom = 1,
     .status = 1,
@@ -680,7 +680,7 @@ static struct fantray_info_stu_sysfs fantray_info[] = {
     .fan1 = fan4_info,
   },
   {
-    .name = "Fantray 3",
+    .name = "Fantray3",
     .present = 1,
     .read_eeprom = 1,
     .status = 1,
@@ -689,7 +689,7 @@ static struct fantray_info_stu_sysfs fantray_info[] = {
     .fan1 = fan3_info,
   },
   {
-    .name = "Fantray 4",
+    .name = "Fantray4",
     .present = 1,
     .read_eeprom = 1,
     .status = 1,
@@ -698,7 +698,7 @@ static struct fantray_info_stu_sysfs fantray_info[] = {
     .fan1 = fan2_info,
   },
   {
-    .name = "Fantray 5",
+    .name = "Fantray5",
     .present = 1,
     .read_eeprom = 1,
     .status = 1,
@@ -1647,6 +1647,30 @@ static int calculate_psu_falling_fan_pwm(int temp)
 	return FAN_HIGH;
 }
 
+static int update_fru_status(int fan, int val)
+{
+	int ret;
+	char buf[PATH_CACHE_SIZE];
+	struct fantray_info_stu_sysfs *fantray;
+	struct fan_info_stu_sysfs *fan_info;
+
+	fantray = &fantray_info[fan];
+	fan_info = &fantray->fan1;
+
+	if(fan < TOTAL_FANS) {
+		snprintf(buf, PATH_CACHE_SIZE, "/tmp/%s", fantray->name);
+		write_sysfs_int(buf, val);
+	} else {
+		snprintf(buf, PATH_CACHE_SIZE, "/tmp/%s", fantray->name);
+		write_sysfs_int(buf, val);
+
+		snprintf(buf, PATH_CACHE_SIZE, "%s/%s", fan_info->rear_fan_prefix, "psu_update");
+		adjust_sysnode_path(fan_info->rear_fan_prefix, "psu_update", buf, sizeof(buf));
+		write_sysfs_int(buf, val);
+	}
+
+	return 0;
+}
 
 /*
  * Fan number here is 0-based
@@ -1682,6 +1706,7 @@ static int fan_is_present_sysfs(int fan, struct fan_info_stu_sysfs *fan_info)
 				syslog(LOG_INFO, "%s present", fantray->name);
 				fantray->present = 1;
 				fantray->read_eeprom = 1;
+				update_fru_status(fan, 0);
 			}
 			return 1;
 		}
@@ -1713,6 +1738,7 @@ static int fan_is_present_sysfs(int fan, struct fan_info_stu_sysfs *fan_info)
 			syslog(LOG_INFO, "%s present", fantray->name);
 			fantray->present = 1;
 			fantray->read_eeprom = 1;
+			update_fru_status(fan, 0);
 		}
 		return 1;
 	}
@@ -1909,7 +1935,7 @@ static int write_psu_fan_speed(const int fan, int value)
 		if(fantray->direction == direction) {
 			ret = write_sysfs_int(fullpath, value);
 		} else {
-			ret = write_sysfs_int(fullpath, 0);
+			ret = write_sysfs_int(fullpath, 35);
 		}
 		if(ret < 0) {
 			syslog(LOG_ERR, "failed to set fan %s/%s, value %#x",
