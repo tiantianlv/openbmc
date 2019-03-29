@@ -1285,7 +1285,7 @@ static int alarm_temp_update(int *alarm)
 					info->recovery_count++;
 					if(info->recovery_count >= WARN_RECOVERY_COUNT) {
 						info->flag &= ~HIGH_MAX_BIT;
-						syslog(LOG_WARNING, "Major temp alarm resumed, set fan normal speed");
+						syslog(LOG_INFO, "Major temp alarm resumed, set fan normal speed");
 					}
 #ifdef DEBU
 					syslog(LOG_DEBUG, "[xuth] Major max bit: %d, recovery count: %d", *alarm & HIGH_MAX_BIT ? 1 : 0, info->recovery_count);
@@ -2140,11 +2140,11 @@ static int get_fan_direction(void)
 			if(find_sub_string(buffer, FAN_DIR_F2B_STR, sizeof(buffer))) {
 				f2r_fan_cnt++;
 				fantray->direction = FAN_DIR_F2B;
-				syslog(LOG_WARNING, "%s direction changed to [Front to rear]", fantray->name);
+				syslog(LOG_INFO, "%s direction changed to [Front to rear]", fantray->name);
 			} else if(find_sub_string(buffer, FAN_DIR_B2F_STR, sizeof(buffer))) {
 				r2f_fan_cnt++;
 				fantray->direction = FAN_DIR_B2F;
-				syslog(LOG_WARNING, "%s direction changed to [Rear to front]", fantray->name);
+				syslog(LOG_INFO, "%s direction changed to [Rear to front]", fantray->name);
 			} else {
 				fantray->direction = FAN_DIR_FAULT;
 				syslog(LOG_WARNING, "%s module unrecognized, set to [Fault]", fantray->name);
@@ -2152,16 +2152,16 @@ static int get_fan_direction(void)
 		} else {
 			if(find_sub_string(buffer, DELTA_PSU_DIR_F2B_STR, sizeof(buffer))) {
 				fantray->direction = FAN_DIR_F2B;
-				syslog(LOG_WARNING, "%s direction changed to [Front to rear]", fantray->name);
+				syslog(LOG_INFO, "%s direction changed to [Front to rear]", fantray->name);
 			} else if(find_sub_string(buffer, DELTA_PSU_DIR_B2F_STR, sizeof(buffer))) {
 				fantray->direction = FAN_DIR_B2F;
-				syslog(LOG_WARNING, "%s direction changed to [Rear to front]", fantray->name);
+				syslog(LOG_INFO, "%s direction changed to [Rear to front]", fantray->name);
 			} else if(find_sub_string(buffer, ACBEL_PSU_DIR_F2B_STR, sizeof(buffer))) {
 				fantray->direction = FAN_DIR_F2B;
-				syslog(LOG_WARNING, "%s direction changed to [Front to rear]", fantray->name);
+				syslog(LOG_INFO, "%s direction changed to [Front to rear]", fantray->name);
 			} else if(find_sub_string(buffer, ACBEL_PSU_DIR_B2F_STR, sizeof(buffer))) {
 				fantray->direction = FAN_DIR_B2F;
-				syslog(LOG_WARNING, "%s direction changed to [Rear to front]", fantray->name);
+				syslog(LOG_INFO, "%s direction changed to [Rear to front]", fantray->name);
 			} else {
 				fantray->direction = FAN_DIR_FAULT;
 				syslog(LOG_WARNING, "%s module unrecognized, set to [Fault]", fantray->name);
@@ -2201,11 +2201,11 @@ int get_thermal_direction(void)
 		fread(buffer, sizeof(char), sizeof(buffer), fp);
 		pclose(fp);
 		if(find_sub_string(buffer, THERMAL_DIR_F2B_STR, sizeof(buffer))) {
-			syslog(LOG_WARNING, "thermal direction changed to [Front to rear]");
-			// return FAN_DIR_F2B;
+			//syslog(LOG_INFO, "thermal direction changed to [Front to rear]");
+			return FAN_DIR_F2B;
 		} else if(find_sub_string(buffer, THERMAL_DIR_B2F_STR, sizeof(buffer))) {
-			syslog(LOG_WARNING, "thermal direction changed to [Rear to front]");
-			// return FAN_DIR_B2F;
+			//syslog(LOG_INFO, "thermal direction changed to [Rear to front]");
+			return FAN_DIR_B2F;
 		}
 	}
 	syslog(LOG_WARNING, "thermal module direction unrecognized");
@@ -2220,11 +2220,11 @@ static void update_thermal_direction()
 	if(direction != dir) {
 		direction = dir;
 		if(direction == FAN_DIR_F2B) {
-			syslog(LOG_INFO, "Thermal direction changed to [Front to rear]");
+			syslog(LOG_INFO, "Thermal direction set to [Front to rear]");
 			policy = &f2b_normal_policy;
 		}
 		if(direction == FAN_DIR_B2F) {
-			syslog(LOG_INFO, "Thermal direction changed to [Rear to front]");
+			syslog(LOG_INFO, "Thermal direction set to [Rear to front]");
 			policy = &b2f_normal_policy;
 		}
 	}

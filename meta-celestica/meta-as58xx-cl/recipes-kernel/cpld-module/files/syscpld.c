@@ -1349,10 +1349,9 @@ static int syscpld_probe(struct i2c_client *client,
 		return -ENODEV;
 
     syscpld_client = client;
-    printk(KERN_DEBUG "syscpld_client:%p\n", syscpld_client);
     //check board type then add different file nodes
     board_type = i2c_smbus_read_byte_data(syscpld_client, 0x2);
-    if(board_type == 1) {
+    if(board_type >= 1) {
         printk(KERN_INFO "Phalanx CPLD driver loading\n");
         n_attrs = sizeof(syscpld_attr_table_phalanx) / sizeof(syscpld_attr_table_phalanx[0]);
         syscpld_attr_table = syscpld_attr_table_phalanx;
@@ -1383,22 +1382,21 @@ int psu_ok(int bus, unsigned short addr)
 
 	data = i2c_get_clientdata(syscpld_client);
 	mutex_lock(&data->idd_lock);
-	//printk(KERN_ALERT "[zmzhan]board_type:%d, bus=%d, addr=0x%x\n",board_type, bus, addr);
 	/* get psu present & power status */
-	if(board_type == 1) {
+	if(board_type >= 1) {
 		int present_val = i2c_smbus_read_byte_data(syscpld_client, 0x5f);
 		int power_val = i2c_smbus_read_byte_data(syscpld_client, 0x60);
 		if(bus == 27 && addr == 0x58) {
             if(((present_val & 0x8) == 0x0) && (power_val & 0x8))
                 ret = 1;
 		} else if (bus == 26 && addr == 0x58) {
-			if(((present_val & 0x4 == 0x0)) && (power_val & 0x4))
+			if(((present_val & 0x4) == 0x0) && (power_val & 0x4))
 				ret = 1;
 		} else if (bus == 25 && addr == 0x58) {
-			if(((present_val & 0x2 == 0x0)) && (power_val & 0x2))
+			if(((present_val & 0x2) == 0x0) && (power_val & 0x2))
 				ret = 1;
 		} else if (bus == 24 && addr == 0x58) {
-			if(((present_val & 0x1 == 0x0)) && (power_val & 0x1))
+			if(((present_val & 0x1) == 0x0) && (power_val & 0x1))
 				ret = 1;
 		} else {
 			ret = 0;
@@ -1445,10 +1443,10 @@ int reset_i2c_mux(int bus)
 	if(bus >= 9 && bus <= 15) {
 		reg_val2 &= ~(0x1 << 1); //connect to FRU
 	} else if(bus >= 16 && bus <= 23) {
-		if(board_type == 1) //Phalanx
+		if(board_type >= 1) //Phalanx
 			reg_val2 &= ~(0x1 << 3); //connect to power chip
 	} else if(bus >= 24 && bus <= 31) {
-		if(board_type == 1) //Phalanx
+		if(board_type >= 1) //Phalanx
 			reg_val2 &= ~(0x1 << 0);
 		else
 			reg_val1 &= ~(0x1 << 2); //connect to PSU
