@@ -114,7 +114,7 @@ def get_fruid_fan():
             err = ex.error
 
         for adata in data.split('\n\n'):
-            sresult = {}
+            sresult = []
             for edata in adata.split('\n'):
                 if len(edata) == 0:
                     continue
