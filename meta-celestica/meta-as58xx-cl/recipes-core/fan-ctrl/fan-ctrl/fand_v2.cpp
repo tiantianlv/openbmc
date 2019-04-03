@@ -1492,30 +1492,6 @@ static int calculate_psu_falling_fan_pwm(int temp)
 	return FAN_HIGH;
 }
 
-static int update_fru_status(int fan, int val)
-{
-	int ret;
-	char buf[PATH_CACHE_SIZE];
-	struct fantray_info_stu_sysfs *fantray;
-	struct fan_info_stu_sysfs *fan_info;
-
-	fantray = &fantray_info[fan];
-	fan_info = &fantray->fan1;
-
-	if(fan < TOTAL_FANS) {
-		snprintf(buf, PATH_CACHE_SIZE, "/tmp/%s", fantray->name);
-		write_sysfs_int(buf, val);
-	} else {
-		snprintf(buf, PATH_CACHE_SIZE, "/tmp/%s", fantray->name);
-		write_sysfs_int(buf, val);
-
-		snprintf(buf, PATH_CACHE_SIZE, "%s/%s", fan_info->rear_fan_prefix, "psu_update");
-		adjust_sysnode_path(fan_info->rear_fan_prefix, "psu_update", buf, sizeof(buf));
-		write_sysfs_int(buf, val);
-	}
-
-	return 0;
-}
 
 /*
  * Fan number here is 0-based
@@ -1551,7 +1527,6 @@ static int fan_is_present_sysfs(int fan, struct fan_info_stu_sysfs *fan_info)
 				syslog(LOG_INFO, "%s present", fantray->name);
 				fantray->present = 1;
 				fantray->read_eeprom = 1;
-				update_fru_status(fan, 0);
 			}
 			return 1;
 		}
@@ -1583,7 +1558,6 @@ static int fan_is_present_sysfs(int fan, struct fan_info_stu_sysfs *fan_info)
 			syslog(LOG_INFO, "%s present", fantray->name);
 			fantray->present = 1;
 			fantray->read_eeprom = 1;
-			update_fru_status(fan, 0);
 		}
 		return 1;
 	}
