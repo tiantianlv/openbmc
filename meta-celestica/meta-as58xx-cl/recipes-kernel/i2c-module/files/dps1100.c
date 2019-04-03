@@ -46,7 +46,6 @@
 #define DPS1100_FAN1_PWM_REG 0x3B
 #define DPS1100_FAN1_SPEED_REG 0x90
 
-#define DPS1100_I2C_REMAIN_ERROR 3
 
 #define DPS1100_WAIT_TIME		1000	/* uS	*/
 
@@ -151,8 +150,8 @@ struct sysfs_attr_t {
 struct dps1100_data {
 	int id;
 	int shutdown_state;
-	int error;
-	int psu_update;
+	int fan1_speed;
+	int fan1_pct;
 	struct i2c_client *client;
 	struct dps1100_alarm_data alarm_data;
 	struct pmbus_driver_info info;
@@ -245,40 +244,6 @@ static int dps1100_shutdown_store(struct device *dev,
 	return count;
 }
 
-static ssize_t dps1100_psu_update_show(struct device *dev,
-        struct device_attribute *attr, char *buf)
-{
-	struct i2c_client *client = to_i2c_client(dev);
-	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = TO_DPS1100_DATA(info);
-
-	return sprintf(buf, "%d\n", data->psu_update);
-}
-
-static int dps1100_psu_update_store(struct device *dev,
-        struct device_attribute *attr, const char *buf, size_t count)
-{
-	int rc = 0;
-	int write_value = 0;
-	struct i2c_client *client = to_i2c_client(dev);
-	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = TO_DPS1100_DATA(info);
-
-	if (buf == NULL) {
-		return -ENXIO;
-	}
-
-	rc = kstrtol(buf, 0, &write_value);
-	if (rc != 0)	{
-		return count;
-	}
-
-	data->psu_update = write_value;
-
-	return count;
-}
-
-
 static ssize_t dps1100_reg_byte_show(struct device *dev,
         struct device_attribute *attr, char *buf)
 {
@@ -287,28 +252,11 @@ static ssize_t dps1100_reg_byte_show(struct device *dev,
 	struct i2c_client *client = to_i2c_client(pdata->dev);
 	struct sysfs_attr_t *sysfs_attr = TO_I2C_SYSFS_ATTR(attr);
 	struct i2c_dev_attr_t *dev_attr = sysfs_attr->i2c_attr;
-	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = TO_DPS1100_DATA(info);
 
 	if(dps1100_ok(client) != 1)
 		return -1;
 
-	if(data->error >= DPS1100_I2C_REMAIN_ERROR) {
-		if(data->psu_update == 0) {
-			data->error = 0;
-			read_val = pmbus_read_byte_data(client, 0, dev_attr->reg);
-		} else {
-			read_val = -1;
-		}
-	} else {
-		read_val = pmbus_read_byte_data(client, 0, dev_attr->reg);
-		if(read_val < 0) {
-			data->error++;
-			data->psu_update = 1;
-		} else {
-			data->error = 0;
-		}
-	}
+	read_val = pmbus_read_byte_data(client, 0, dev_attr->reg);
 	if(read_val < 0)
 		return -1;
 
@@ -324,8 +272,6 @@ static int dps1100_reg_byte_store(struct device *dev,
 	struct i2c_client *client = to_i2c_client(pdata->dev);
 	struct sysfs_attr_t *sysfs_attr = TO_I2C_SYSFS_ATTR(attr);
 	struct i2c_dev_attr_t *dev_attr = sysfs_attr->i2c_attr;
-	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = TO_DPS1100_DATA(info);
 
 	if(dps1100_ok(client) != 1)
 		return -1;
@@ -340,23 +286,7 @@ static int dps1100_reg_byte_store(struct device *dev,
 		return count;
 	}
 
-	if(data->error >= DPS1100_I2C_REMAIN_ERROR) {
-		if(data->psu_update == 0) {
-			data->error = 0;
-			rc = pmbus_write_byte_data(client, 0, dev_attr->reg, write_value);
-		} else {
-			rc = -1;
-		}
-	} else {
-		rc = pmbus_write_byte_data(client, 0, dev_attr->reg, write_value);
-		if(rc < 0) {
-			data->error++;
-			data->psu_update = 1;
-		} else {
-			data->error = 0;
-		}
-	}
-
+	rc = pmbus_write_byte_data(client, 0, dev_attr->reg, write_value);
 	if (rc < 0) {
 		return -1;
 	}
@@ -373,29 +303,11 @@ static ssize_t dps1100_reg_word_show(struct device *dev,
 	struct i2c_client *client = to_i2c_client(pdata->dev);
 	struct sysfs_attr_t *sysfs_attr = TO_I2C_SYSFS_ATTR(attr);
 	struct i2c_dev_attr_t *dev_attr = sysfs_attr->i2c_attr;
-	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = TO_DPS1100_DATA(info);
 
 	if(dps1100_ok(client) != 1)
 		return -1;
 
-	if(data->error >= DPS1100_I2C_REMAIN_ERROR) {
-		if(data->psu_update == 0) {
-			data->error = 0;
-			read_val = pmbus_read_word_data(client, 0, dev_attr->reg);
-		} else {
-			read_val = -1;
-		}
-	} else {
-		read_val = pmbus_read_word_data(client, 0, dev_attr->reg);
-		if(read_val < 0) {
-			data->error++;
-			data->psu_update = 1;
-		} else {
-			data->error = 0;
-		}
-	}
-
+	read_val = pmbus_read_word_data(client, 0, dev_attr->reg);
 	if (read_val < 0)
 	{
 		return -1;
@@ -413,8 +325,6 @@ static int dps1100_reg_word_store(struct device *dev,
 	struct i2c_client *client = to_i2c_client(pdata->dev);
 	struct sysfs_attr_t *sysfs_attr = TO_I2C_SYSFS_ATTR(attr);
 	struct i2c_dev_attr_t *dev_attr = sysfs_attr->i2c_attr;
-	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = TO_DPS1100_DATA(info);
 
 	if(dps1100_ok(client) != 1)
 		return -1;
@@ -429,23 +339,7 @@ static int dps1100_reg_word_store(struct device *dev,
 		return count;
 	}
 
-	if(data->error >= DPS1100_I2C_REMAIN_ERROR) {
-		if(data->psu_update == 0) {
-			data->error = 0;
-			rc = pmbus_write_word_data(client, 0, dev_attr->reg, write_value);
-		} else {
-			rc = -1;
-		}
-	} else {
-		rc = pmbus_write_word_data(client, 0, dev_attr->reg, write_value);
-		if(rc < 0) {
-			data->error++;
-			data->psu_update = 1;
-		} else {
-			data->error = 0;
-		}
-	}
-
+	rc = pmbus_write_word_data(client, 0, dev_attr->reg, write_value);
 	if (rc < 0) {
 		return -1;
 	}
@@ -579,13 +473,6 @@ static const struct i2c_dev_attr_t psu_attr_table[] = {
 		NULL,
 		I2C_DEV_ATTR_SHOW_DEFAULT,
 		I2C_DEV_ATTR_STORE_DEFAULT,
-		0,
-	},
-	{
-		"psu_update",
-		NULL,
-		dps1100_psu_update_show,
-		dps1100_psu_update_store,
 		0,
 	},
 	{
@@ -779,28 +666,10 @@ static int dps1100_remove(struct i2c_client *client)
 static int dps1100_pmbus_read_word_data(struct i2c_client *client, u8 page, u8 reg)
 {
 	int ret;
-	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = TO_DPS1100_DATA(info);
-
 
 	if(dps1100_ok(client) != 1)
 		return -1;
-	if(data->error >= DPS1100_I2C_REMAIN_ERROR) {
-		if(data->psu_update == 0) {
-			data->error = 0;
-			ret = pmbus_read_word_data(client, page, reg);
-		} else {
-			ret = -1;
-		}
-	} else {
-		ret = pmbus_read_word_data(client, page, reg);
-		if(ret < 0) {
-			data->error++;
-            data->psu_update = 1;
-		} else {
-			data->error = 0;
-		}
-	}
+	ret = pmbus_read_word_data(client, page, reg);
 
 	return ret;
 }
@@ -808,29 +677,11 @@ static int dps1100_pmbus_read_word_data(struct i2c_client *client, u8 page, u8 r
 static int dps1100_pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg, u16 word)
 {
 	int ret;
-	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = TO_DPS1100_DATA(info);
-
 
 	if(dps1100_ok(client) != 1)
 		return -1;
 
-	if(data->error >= DPS1100_I2C_REMAIN_ERROR) {
-		if(data->psu_update == 0) {
-			data->error = 0;
-			ret = pmbus_write_word_data(client, page, reg, word);
-		} else {
-			ret = -1;
-		}
-	} else {
-		ret = pmbus_write_word_data(client, page, reg, word);
-		if(ret < 0) {
-			data->error++;
-			data->psu_update = 1;
-		} else {
-			data->error = 0;
-		}
-	}
+	ret = pmbus_write_word_data(client, page, reg, word);
 
 	return ret;
 }
@@ -838,29 +689,11 @@ static int dps1100_pmbus_write_word_data(struct i2c_client *client, u8 page, u8 
 static int dps1100_pmbus_read_byte_data(struct i2c_client *client, int page, u8 reg)
 {
 	int ret;
-	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = TO_DPS1100_DATA(info);
-
 
 	if(dps1100_ok(client) != 1)
 		return -1;
 
-	if(data->error >= DPS1100_I2C_REMAIN_ERROR) {
-		if(data->psu_update == 0) {
-			data->error = 0;
-			ret = pmbus_read_byte_data(client, page, reg);
-		} else {
-			ret = -1;
-		}
-	} else {
-		ret = pmbus_read_byte_data(client, page, reg);
-		if(ret < 0) {
-			data->error++;
-			data->psu_update = 1;
-		} else {
-			data->error = 0;
-		}
-	}
+	ret = pmbus_read_byte_data(client, page, reg);
 
 	return ret;
 }
@@ -868,29 +701,11 @@ static int dps1100_pmbus_read_byte_data(struct i2c_client *client, int page, u8 
 static int dps1100_pmbus_write_byte(struct i2c_client *client, int page, u8 value)
 {
 	int ret;
-	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-	struct dps1100_data *data = TO_DPS1100_DATA(info);
-
 
 	if(dps1100_ok(client) != 1)
 		return -1;
 
-	if(data->error >= DPS1100_I2C_REMAIN_ERROR) {
-		if(data->psu_update == 0) {
-			data->error = 0;
-			ret = pmbus_write_byte(client, page, value);
-		} else {
-			ret = -1;
-		}
-	} else {
-		ret = pmbus_write_byte(client, page, value);
-		if(ret < 0) {
-			data->error++;
-			data->psu_update = 1;
-		} else {
-			data->error = 0;
-		}
-	}
+	ret = pmbus_write_byte(client, page, value);
 
 	return ret;
 }
