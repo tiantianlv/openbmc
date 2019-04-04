@@ -1,6 +1,6 @@
-From a772795f91f04e85d904df9ceb6549768f3c7d4d Mon Sep 17 00:00:00 2001
-From: Xuth <tianhui@celestica.com>
-Date: Fri, 22 Mar 2019 16:06:49 +0800
+From 0fde4e50621c95ae92096cb6b1285db53d87e659 Mon Sep 17 00:00:00 2001
+From: zmzhan <mzhan@celestica.com>
+Date: Wed, 3 Apr 2019 17:58:32 +0800
 Subject: [PATCH] Add Celestica Questone2 and AS58XX-CL projects
 
 ---
@@ -12,12 +12,11 @@ Subject: [PATCH] Add Celestica Questone2 and AS58XX-CL projects
  arch/arm/plat-aspeed/dev-spi-fb.c        |  56 ++++++++-
  arch/arm/plat-aspeed/dev-uart.c          |  22 +++-
  drivers/hwmon/pmbus/pmbus_core.c         |   2 +
- drivers/i2c/muxes/i2c-mux-pca954x.c      |  13 +++
+ drivers/i2c/busses/i2c-ast.c             |  17 ++-
  drivers/net/ethernet/faraday/ftgmac100.c | 191 ++++++++++++++++++++++++++++++-
  drivers/net/phy/broadcom.c               |   2 +-
- 11 files changed, 358 insertions(+), 11 deletions(-)
+ 11 files changed, 358 insertions(+), 15 deletions(-)
  create mode 100644 arch/arm/plat-aspeed/dev-i2c-cel.c
- mode change 100644 => 100755 drivers/i2c/muxes/i2c-mux-pca954x.c
 
 diff --git a/arch/arm/mach-aspeed/Kconfig b/arch/arm/mach-aspeed/Kconfig
 index f37d9da..ebba36c 100644
@@ -26,7 +25,7 @@ index f37d9da..ebba36c 100644
 @@ -276,6 +276,18 @@ config PWNEPTUNE
  	select EGFX_IRQ
      bool "Portwell Neptune"
-
+ 
 +config QUESTONE2
 +	select USB_ARCH_HAS_EHCI
 +	select AST_UART_SDMA
@@ -49,7 +48,7 @@ index 55d9a0d..afcc25e 100644
 @@ -92,6 +92,16 @@ ifeq ($(CONFIG_PWNEPTUNE), y)
    PLATFB = 1
  endif
-
+ 
 +ifeq ($(CONFIG_QUESTONE2), y)
 +  obj-y += dev-uart.o dev-i2c-setup-mux.o dev-i2c-cel.o
 +  PLATFB = 1
@@ -83,9 +82,9 @@ index 7e28d00..13f5f32 100644
      !defined(CONFIG_CMM) && !defined(CONFIG_MINIPACK) && \
 -    !defined(CONFIG_GALAXY100)
 +    !defined(CONFIG_GALAXY100) && !defined(CONFIG_AS58XX_CL)
-
+ 
  	ast_eth0_data.DF_support = !isRevA0;
-
+ 
 diff --git a/arch/arm/plat-aspeed/dev-i2c-cel.c b/arch/arm/plat-aspeed/dev-i2c-cel.c
 new file mode 100644
 index 0000000..6e9a705
@@ -150,9 +149,9 @@ index ba5b165..344307c 100644
  #include <plat/ast_sdhci.h>
  #include <plat/ast-scu.h>
 +#include <mach/hardware.h>
-
+ 
  extern void ast_sd_set_8bit_mode(u8 mode);
-
+ 
 @@ -109,6 +110,12 @@ void __init ast_add_device_sdhci(void)
  #if defined CONFIG_MINIPACK || defined CONFIG_YAMP
  	ast_scu_multi_func_sdhc_slot(2);
@@ -173,7 +172,7 @@ index acde30e..da136d3 100644
 @@ -284,6 +284,38 @@ static struct mtd_partition ast_primary_partitions[] = {
  	},
  };
-
+ 
 +#if defined(CONFIG_QUESTONE2) || defined(CONFIG_AS58XX_CL)
 +static struct mtd_partition ast_legacy_rom_partitions[] = {
 +	{
@@ -212,7 +211,7 @@ index acde30e..da136d3 100644
 @@ -373,6 +405,14 @@ static struct flash_platform_data ast_legacy_platform_data = {
  	.parts      = ast_legacy_partitions,
  };
-
+ 
 +#if defined(CONFIG_QUESTONE2) || defined(CONFIG_AS58XX_CL)
 +static struct flash_platform_data ast_legacy_rom_platform_data = {
 +	.type       = "mx25l25635e",
@@ -239,11 +238,11 @@ index acde30e..da136d3 100644
 +	},
 +#endif
  };
-
+ 
  #ifdef CONFIG_MINIPACK
 @@ -474,10 +524,10 @@ static struct spi_eeprom m95m02 = {
  #endif
-
+ 
  #if defined(CONFIG_FBTP)  || defined (CONFIG_WEDGE100) || defined (CONFIG_PWNEPTUNE) || \
 -    defined(CONFIG_MINIPACK)
 +    defined(CONFIG_MINIPACK) || defined(CONFIG_QUESTONE2) || defined(CONFIG_AS58XX_CL)
@@ -294,7 +293,7 @@ index 78123f7..f9848e9 100644
 +#endif
  #endif
  	{},
-
+ 
 @@ -434,11 +446,17 @@ iounmap(reg_base);
  	ast_scu_multi_func_uart(2);
  	ast_scu_multi_func_uart(3);
@@ -333,69 +332,77 @@ index f8e7ce5..fef8a63 100644
 +#endif
  	return 0;
  }
-
-diff --git a/drivers/i2c/muxes/i2c-mux-pca954x.c b/drivers/i2c/muxes/i2c-mux-pca954x.c
-old mode 100644
-new mode 100755
-index f2335f6..da6307a
---- a/drivers/i2c/muxes/i2c-mux-pca954x.c
-+++ b/drivers/i2c/muxes/i2c-mux-pca954x.c
-@@ -150,6 +150,9 @@ static int pca954x_reg_write(struct i2c_adapter *adap,
- 	return ret;
- }
-
-+#ifdef AS58XX_CL
-+extern int reset_i2c_mux(int bus);
-+#endif
- static int pca954x_select_chan(struct i2c_adapter *adap,
- 			       void *client, u32 chan)
- {
-@@ -164,11 +167,21 @@ static int pca954x_select_chan(struct i2c_adapter *adap,
- 	else
- 		regval = 1 << chan;
-
-+#ifdef AS58XX_CL
-+	ret = pca954x_reg_write(adap, client, regval);
-+	data->last_chan = regval;
-+	printk(KERN_DEBUG "%s:ret:%d\n", __func__, ret);
-+	printk(KERN_DEBUG "adap:%d client:%d", adap->nr, client->adapter->nr);
-+	if(ret < 0) {
-+		reset_i2c_mux(adap->nr);
-+	}
+ 
+diff --git a/drivers/i2c/busses/i2c-ast.c b/drivers/i2c/busses/i2c-ast.c
+index ecaa88f..fed6229 100644
+--- a/drivers/i2c/busses/i2c-ast.c
++++ b/drivers/i2c/busses/i2c-ast.c
+@@ -540,7 +540,11 @@ ast_i2c_slave_reset(struct ast_i2c_dev *i2c_dev)
+ 	tmp_func_ctrl_reg = i2c_dev->func_ctrl_reg;
+ 
+ 	//Let's retry 10 times
++#ifdef CONFIG_AS58XX_CL
++	for (i = 0; i < 1; i++) {
 +#else
- 	/* Only select the channel if its different from the last channel */
- 	if (data->last_chan != regval) {
- 		ret = pca954x_reg_write(adap, client, regval);
- 		data->last_chan = regval;
- 	}
+ 	for (i = 0; i < 10; i++) {
 +#endif
-
- 	return ret;
- }
+     dev_err(i2c_dev->dev, "slave reset retry%d\n",i);
+ 		ast_i2c_dev_init(i2c_dev);
+ 
+@@ -565,7 +569,11 @@ ast_i2c_slave_reset(struct ast_i2c_dev *i2c_dev)
+ 			break ;
+ 		}
+ 	}
++#ifdef CONFIG_AS58XX_CL
++	if (i == 1) {
++#else
+ 	if (i == 10) {
++#endif
+ 		i2c_dev->func_ctrl_reg = tmp_func_ctrl_reg;
+ 		dev_err(i2c_dev->dev, "ERROR!! recovery failed\n");
+ 		i2c_dev->adap.bus_status |= 0x1 << SLAVE_DEAD_RECOVER_ERROR;
+@@ -2293,12 +2301,13 @@ static int ast_i2c_probe(struct platform_device *pdev)
+  	/* Initialize the I2C adapter */
+ 	i2c_dev->adap.owner   = THIS_MODULE;
+ //TODO
+-	// i2c_dev->adap.retries = 0;
+-
++#ifdef CONFIG_AS58XX_CL
++	i2c_dev->adap.retries = 0;
++	i2c_dev->adap.timeout = 1;
++#else
+ 	i2c_dev->adap.retries = 3;
+-
+ 	i2c_dev->adap.timeout = 5;
+-
++#endif
+ 	i2c_dev->master_xfer_mode = BYTE_XFER;
+ 
+ 	/*
 diff --git a/drivers/net/ethernet/faraday/ftgmac100.c b/drivers/net/ethernet/faraday/ftgmac100.c
 index bc87879..0d7cc24 100644
 --- a/drivers/net/ethernet/faraday/ftgmac100.c
 +++ b/drivers/net/ethernet/faraday/ftgmac100.c
 @@ -2580,18 +2580,26 @@ static bool ftgmac100_rx_packet_error(struct ftgmac100 *priv,
  	bool error = false;
-
+ 
  	if (unlikely(ftgmac100_rxdes_rx_error(rxdes))) {
 +#if !defined(CONFIG_AS58XX_CL)
  		if (net_ratelimit())
  			netdev_info(netdev, "rx err\n");
-
+ 
  		netdev->stats.rx_errors++;
 +#else
 +		netdev->stats.rx_errors++;
 +#endif
  		error = true;
  	}
-
+ 
  	if (unlikely(ftgmac100_rxdes_crc_error(rxdes))) {
 +#if !defined(CONFIG_AS58XX_CL)
  		if (net_ratelimit())
  			netdev_info(netdev, "rx crc err\n");
-
+ 
  		netdev->stats.rx_crc_errors++;
 +#else
 +		netdev->stats.rx_crc_errors++;
@@ -405,12 +412,12 @@ index bc87879..0d7cc24 100644
  		if (net_ratelimit())
 @@ -2601,22 +2609,32 @@ static bool ftgmac100_rx_packet_error(struct ftgmac100 *priv,
  	}
-
+ 
  	if (unlikely(ftgmac100_rxdes_frame_too_long(rxdes))) {
 +#if !defined(CONFIG_AS58XX_CL)
  		if (net_ratelimit())
  			netdev_info(netdev, "rx frame too long\n");
-
+ 
  		netdev->stats.rx_length_errors++;
 +#else
 +		netdev->stats.rx_length_errors++;
@@ -420,7 +427,7 @@ index bc87879..0d7cc24 100644
  	} else if (unlikely(ftgmac100_rxdes_runt(rxdes))) {
  		if (net_ratelimit())
  			netdev_info(netdev, "rx runt\n");
-
+ 
  		netdev->stats.rx_length_errors++;
  		error = true;
 +#endif
@@ -428,18 +435,18 @@ index bc87879..0d7cc24 100644
 +#if !defined(CONFIG_AS58XX_CL)
  		if (net_ratelimit())
  			netdev_info(netdev, "rx odd nibble\n");
-
+ 
  		netdev->stats.rx_length_errors++;
 +#else
 +		netdev->stats.rx_length_errors++;
 +#endif
  		error = true;
  	}
-
+ 
 @@ -3074,7 +3092,11 @@ static int ftgmac100_mii_probe(struct ftgmac100 *priv)
  	for (i = 0; i < PHY_MAX_ADDR; i++) {
  		struct phy_device *tmp = priv->mii_bus->phy_map[i];
-
+ 
 +#if defined(CONFIG_AS58XX_CL)
 +		if (tmp && (tmp->addr == 0x0d)) {
 +#else
@@ -451,7 +458,7 @@ index bc87879..0d7cc24 100644
 @@ -3173,6 +3195,158 @@ static int ftgmac100_mdiobus_write(struct mii_bus *bus, int phy_addr,
  }
  #endif // #ifndef CONFIG_FTGMAC100_NCSI
-
+ 
 +#if defined(CONFIG_AS58XX_CL)
 +static int mdio_val = 0;
 +static int led_ctrl_val = 0;
@@ -637,7 +644,7 @@ index bc87879..0d7cc24 100644
 @@ -3612,6 +3787,16 @@ static int ftgmac100_probe(struct platform_device *pdev)
  		goto err_mii_probe;
  	}
-
+ 
 +#if defined(CONFIG_AS58XX_CL)
 +	ftgmac100_mdiobus_write(priv->mii_bus, 0x0e, 0x04, 0x01e1);
 +	ftgmac100_mdiobus_write(priv->mii_bus, 0x0f, 0x04, 0x01e1);
@@ -649,14 +656,14 @@ index bc87879..0d7cc24 100644
 +#endif
 +
  #endif
-
+ 
  	/* register network device */
 diff --git a/drivers/net/phy/broadcom.c b/drivers/net/phy/broadcom.c
 index 6698743..ac189ff 100644
 --- a/drivers/net/phy/broadcom.c
 +++ b/drivers/net/phy/broadcom.c
 @@ -372,7 +372,7 @@ static int bcm54616s_config_aneg(struct phy_device *phydev)
-
+ 
  #if defined(CONFIG_WEDGE) || defined(CONFIG_WEDGE100) || defined(CONFIG_CMM) || \
  	defined(CONFIG_MINIPACK) || defined(CONFIG_YAMP) || \
 -	defined(CONFIG_GALAXY100)
@@ -664,5 +671,6 @@ index 6698743..ac189ff 100644
  	/* disable GTXCLK Clock Delay */
  	phy_write(phydev, 0x1C, 0x8C00);
  	/* Disable RGMII RXD to RXC skew */
---
+-- 
 2.7.4
+

@@ -27,6 +27,7 @@ SRC_URI = "file://Makefile \
            file://max31730.c \
            file://psu_fru.c \
            file://i2c-mux-pca954x.c \
+           file://cpu_error.c \
            file://pmbus.h \
            file://COPYING \
           "

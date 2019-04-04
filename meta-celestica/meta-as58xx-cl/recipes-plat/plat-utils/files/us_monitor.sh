@@ -372,8 +372,8 @@ cpu_update=0
 fan_wdt_st=0
 come_val=0
 bios_status=0
-aer_error=0
-mca_error=0
+#aer_error=0
+#mca_error=0
 come_wdt_count=0
 come_wdt_enable=0
 
@@ -413,12 +413,12 @@ while true; do
     bios_status=$?
 
     #COMe AER error monitor
-    come_aer_err_monitor $aer_error
-    aer_error=$?
+    #come_aer_err_monitor $aer_error
+    #aer_error=$?
 
     #COMe MCA error monitor
-    come_mca_err_monitor $mca_error
-    mca_error=$?
+    #come_mca_err_monitor $mca_error
+    #mca_error=$?
 
     #COMe hang watchdog monitor
     come_wdt_monitor

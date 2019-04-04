@@ -37,5 +37,6 @@ else
     modprobe fancpld_phalanx
 fi
 modprobe i2c-mux-pca954x ignore_probe=1
+modprobe cpu_error
 echo "Done"
 
