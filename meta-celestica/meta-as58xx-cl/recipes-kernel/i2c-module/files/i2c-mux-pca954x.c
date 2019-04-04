@@ -152,7 +152,6 @@ static int pca954x_reg_write(struct i2c_adapter *adap,
 	}
 #ifdef CONFIG_AS58XX_CL
 	if(ret < 0) {
-	    printk(KERN_ALERT "[zmzhan]%s:adap:%d ret:%d", __func__, adap->nr, ret);
 		reset_i2c_mux(adap->nr);
 	}
 #endif
@@ -244,7 +243,6 @@ static int pca954x_probe(struct i2c_client *client,
 
 	idle_disconnect_dt = of_node &&
 		of_property_read_bool(of_node, "i2c-mux-idle-disconnect");
-printk(KERN_ALERT "[zmzhan]:%s: adapter->retries=%d\n", __func__, adap->retries);
 	/* Now create an adapter for each channel */
 	for (num = 0; num < chips[data->type].nchans; num++) {
 		bool idle_disconnect_pd = false;

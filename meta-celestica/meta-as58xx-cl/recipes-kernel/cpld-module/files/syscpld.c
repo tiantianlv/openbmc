@@ -1440,23 +1440,26 @@ int reset_i2c_mux(int bus)
 	/* get reset reigster status */
 	reg_val1 = i2c_smbus_read_byte_data(syscpld_client, 0x04);
 	reg_val2 = i2c_smbus_read_byte_data(syscpld_client, 0x05);
-	if(bus >= 9 && bus <= 15) {
+	if(bus == 2) {
 		reg_val2 &= ~(0x1 << 1); //connect to FRU
-	} else if(bus >= 16 && bus <= 23) {
+	} else if(bus == 4) {
 		if(board_type >= 1) //Phalanx
 			reg_val2 &= ~(0x1 << 3); //connect to power chip
-	} else if(bus >= 24 && bus <= 31) {
+	} else if(bus == 6) {
 		if(board_type >= 1) //Phalanx
 			reg_val2 &= ~(0x1 << 0);
 		else
 			reg_val1 &= ~(0x1 << 2); //connect to PSU
-	} else if(bus >= 32 && bus <= 39) {
+	} else if(bus == 8) {
 		reg_val1 &= ~(0x1 << 7); //connect to FAN board
-	} else if(bus >= 42 && bus <= 49) {
+	} else if(bus == 7) {
 		reg_val2 &= ~(0x1 << 2); //connect to temp
 	}
 	i2c_smbus_write_byte_data(syscpld_client, 0x04, reg_val1);
 	i2c_smbus_write_byte_data(syscpld_client, 0x05, reg_val2);
+	udelay(1000);
+	i2c_smbus_write_byte_data(syscpld_client, 0x04, 0xff);
+	i2c_smbus_write_byte_data(syscpld_client, 0x05, 0xff);
 	mutex_unlock(&data->idd_lock);
 
 	return 0;
