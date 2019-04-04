@@ -1412,7 +1412,6 @@ int psu_ok(int bus, unsigned short addr)
 		} else {
 			ret = 0;
 		}
-		//printk(KERN_ALERT "[zmzhan]psu_status=0x%x, ret=%d\n", psu_status, ret);
 	}
 	mutex_unlock(&data->idd_lock);
 	return ret;
@@ -1434,7 +1433,7 @@ int reset_i2c_mux(int bus)
 	if(syscpld_client == NULL)
 		return -ENODEV;
 
-	printk(KERN_ALERT "[zmzhan]bus %d is huang, try to reset the PCA9548\n", bus);
+	printk(KERN_WARNING "bus %d is huang, try to reset the PCA9548\n", bus);
 	data = i2c_get_clientdata(syscpld_client);
 	mutex_lock(&data->idd_lock);
 	/* get reset reigster status */
