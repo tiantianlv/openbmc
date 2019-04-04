@@ -20,4 +20,4 @@
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 
 # config rsyslog to remote push log
-echo "*.* @240.1.1.2:514" >> /etc/rsyslog.conf
+#echo "*.* @240.1.1.2:514" >> /etc/rsyslog.conf
