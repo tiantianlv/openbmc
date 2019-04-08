@@ -977,7 +977,7 @@ static int read_sysfs_raw_internal(const char *device, char *value, int log)
 	if (!fp) {
 		if (log) {
 			err = errno;
-			syslog(LOG_INFO, "failed to open device %s for read: %s",
+			syslog(LOG_ERR, "failed to open device %s for read: %s",
 			     device, strerror(err));
 			errno = err;
 		}
@@ -990,7 +990,7 @@ static int read_sysfs_raw_internal(const char *device, char *value, int log)
 	if (rc != 1) {
 		if (log) {
 			err = errno;
-			syslog(LOG_INFO, "failed to read device %s: %s",
+			syslog(LOG_ERR, "failed to read device %s: %s",
 			     device, strerror(err));
 			errno = err;
 		}
@@ -1036,7 +1036,7 @@ static int write_sysfs_raw_internal(const char *device, char *value, int log)
 	if (!fp) {
 		if (log) {
 			err = errno;
-			syslog(LOG_INFO, "failed to open device %s for write : %s",
+			syslog(LOG_ERR, "failed to open device %s for write : %s",
 			     device, strerror(err));
 			errno = err;
 		}
@@ -1049,7 +1049,7 @@ static int write_sysfs_raw_internal(const char *device, char *value, int log)
 	if (rc < 0) {
 		if (log) {
 			err = errno;
-			syslog(LOG_INFO, "failed to write to device %s", device);
+			syslog(LOG_ERR, "failed to write to device %s", device);
 			errno = err;
 		}
 		return -1;
@@ -1087,7 +1087,7 @@ static int read_temp_directly_sysfs(struct sensor_info_sysfs *sensor)
 	int cache_str_len = 0;
 
 	if (sensor == NULL) {
-		syslog(LOG_NOTICE, "sensor is null\n");
+		syslog(LOG_ERR, "sensor is null\n");
 		return BAD_TEMP;
 	}
 	// Check if cache is available
@@ -1138,7 +1138,7 @@ static int read_temp_sysfs(struct sensor_info_sysfs *sensor)
 	int cache_str_len = 0;
 
 	if (sensor == NULL) {
-		syslog(LOG_NOTICE, "sensor is null\n");
+		syslog(LOG_ERR, "sensor is null\n");
 		return BAD_TEMP;
 	}
 	// Check if cache is available
@@ -1152,7 +1152,7 @@ static int read_temp_sysfs(struct sensor_info_sysfs *sensor)
 		// No cached value yet. Calculate the full path first
 		ret = assemble_sysfs_path(sensor->prefix, sensor->suffix, fullpath, sizeof(fullpath));
 		if(ret != 0) {
-			syslog(LOG_NOTICE, "%s: I2C bus %s not available. Failed reading %s\n", __FUNCTION__, sensor->prefix, sensor->suffix);
+			syslog(LOG_ERR, "%s: I2C bus %s not available. Failed reading %s\n", __FUNCTION__, sensor->prefix, sensor->suffix);
 			return BAD_TEMP;
 		}
 		// Update cache, if possible.
@@ -1672,14 +1672,14 @@ static int fan_is_present_sysfs(int fan, struct fan_info_stu_sysfs *fan_info)
 
 	if (ret != 0) {
 		if(fantray->present == 1) {
-			syslog(LOG_ERR, "%s not present", fantray->name);
+			syslog(LOG_WARNING, "%s not present", fantray->name);
 			fantray->present = 0;
 			fantray->read_eeprom = 1;
 		}
 	} else {
 		if(fan < TOTAL_FANS) {
 			if(fantray->present == 0) {
-				syslog(LOG_INFO, "%s present", fantray->name);
+				syslog(LOG_WARNING, "%s present", fantray->name);
 				fantray->present = 1;
 				fantray->read_eeprom = 1;
 			}
@@ -1710,7 +1710,7 @@ static int fan_is_present_sysfs(int fan, struct fan_info_stu_sysfs *fan_info)
 				psu_led_color |= (0x1 << (fan - TOTAL_FANS));
 		}
 		if(fantray->present == 0) {
-			syslog(LOG_INFO, "%s present", fantray->name);
+			syslog(LOG_WARNING, "%s present", fantray->name);
 			fantray->present = 1;
 			fantray->read_eeprom = 1;
 		}
