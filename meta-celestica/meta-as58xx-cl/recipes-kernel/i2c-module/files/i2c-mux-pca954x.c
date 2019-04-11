@@ -45,7 +45,7 @@
 #include <linux/pm.h>
 #include <linux/slab.h>
 
-static bool ignore_probe;
+static bool ignore_probe = 1;
 module_param(ignore_probe, bool, 0);
 MODULE_PARM_DESC(ignore_probe, "Ignore probe result. Always assume there is one.");
 

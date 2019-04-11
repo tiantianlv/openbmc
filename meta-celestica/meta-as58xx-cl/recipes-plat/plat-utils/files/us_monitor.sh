@@ -364,6 +364,15 @@ come_wdt_monitor() {
     fi
 }
 
+rsyslog_update() {
+    pid=$(ps |grep rsyslogd |grep -v grep | awk -F ' ' '{print $1}')
+    if [ ! -n "$pid" ]; then
+        logger "The rsyslogd can not be found, restart it"
+        /etc/init.d/syslog.rsyslog restart
+    fi
+}
+
+
 psu_status_init
 come_rest_status 2
 come_rst_st=$?
@@ -422,6 +431,8 @@ while true; do
 
     #COMe hang watchdog monitor
     come_wdt_monitor
+
+    rsyslog_update
 
     usleep 3000000
 done
