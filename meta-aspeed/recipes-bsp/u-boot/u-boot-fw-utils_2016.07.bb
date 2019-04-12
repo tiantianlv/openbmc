@@ -4,11 +4,13 @@ LIC_FILES_CHKSUM = "file://Licenses/README;md5=a2c678cfd4a4d97135585cad908541c6"
 SECTION = "bootloader"
 DEPENDS = "mtd-utils"
 
+
 SRCBRANCH = "openbmc/helium/v2016.07"
 SRCREV = "AUTOINC"
 
 SRC_URI = "git://github.com/theopolis/u-boot.git;branch=${SRCBRANCH};protocol=https \
            file://fw_env.config \
+           file://0001-Support-Celestica-Questone2-and-AS58XX-CL-projects.patch \
           "
 
 PV = "v2016.07"

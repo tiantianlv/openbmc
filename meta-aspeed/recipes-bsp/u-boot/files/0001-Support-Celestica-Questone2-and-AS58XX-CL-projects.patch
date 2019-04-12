@@ -1,0 +1,722 @@
+From 6f801805c1f29db1b22d12c1b935d79fc15a97fd Mon Sep 17 00:00:00 2001
+From: Xuth <tianhui@celestica.com>
+Date: Fri, 12 Oct 2018 16:02:14 +0800
+Subject: [PATCH] Support Celestica Questone2 and AS58XX-CL projects
+
+---
+ arch/arm/Kconfig                |  11 ++
+ board/celestica/Kconfig         |  25 ++++
+ board/celestica/MAINTAINERS     |   8 ++
+ configs/cel_as58xx-cl_defconfig |  26 ++++
+ configs/cel_questone2_defconfig |  26 ++++
+ drivers/net/aspeednic.c         |  16 +++
+ include/configs/cel_as58xx-cl.h | 261 ++++++++++++++++++++++++++++++++++++++++
+ include/configs/cel_questone2.h | 252 ++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 625 insertions(+)
+ create mode 100644 board/celestica/Kconfig
+ create mode 100644 board/celestica/MAINTAINERS
+ create mode 100644 configs/cel_as58xx-cl_defconfig
+ create mode 100644 configs/cel_questone2_defconfig
+ create mode 100644 include/configs/cel_as58xx-cl.h
+ create mode 100644 include/configs/cel_questone2.h
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 445399e..fbf51c7 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -928,6 +928,16 @@ config TARGET_AST_G4
+        bool "Support Aspeed fourth generation SoCs"
+        select CPU_ARM926EJS
+ 
++config TARGET_QUESTONE2
++	bool "Support Celestica Questone2"
++	select CPU_ARM1176
++	select SUPPORT_SPL
++
++config TARGET_AS58XX_CL
++	bool "Support Celestica AS58xx-CL"
++	select CPU_ARM1176
++	select SUPPORT_SPL
++
+ endchoice
+ 
+ source "arch/arm/mach-at91/Kconfig"
+@@ -1072,6 +1082,7 @@ source "board/vscom/baltos/Kconfig"
+ source "board/woodburn/Kconfig"
+ source "board/work-microwave/work_92105/Kconfig"
+ source "board/zipitz2/Kconfig"
++source "board/celestica/Kconfig"
+ 
+ source "arch/arm/Kconfig.debug"
+ 
+diff --git a/board/celestica/Kconfig b/board/celestica/Kconfig
+new file mode 100644
+index 0000000..bd9e8dc
+--- /dev/null
++++ b/board/celestica/Kconfig
+@@ -0,0 +1,25 @@
++if TARGET_QUESTONE2
++config SYS_CPU
++  default "arm1176"
++config SYS_BOARD
++  default "ast-g5"
++config SYS_VENDOR
++  default "aspeed"
++config SYS_SOC
++  default "aspeed"
++config SYS_CONFIG_NAME
++  default "cel_questone2"
++endif
++
++if TARGET_AS58XX_CL
++config SYS_CPU
++  default "arm1176"
++config SYS_BOARD
++  default "ast-g5"
++config SYS_VENDOR
++  default "aspeed"
++config SYS_SOC
++  default "aspeed"
++config SYS_CONFIG_NAME
++  default "cel_as58xx-cl"
++endif
+diff --git a/board/celestica/MAINTAINERS b/board/celestica/MAINTAINERS
+new file mode 100644
+index 0000000..46c2f0e
+--- /dev/null
++++ b/board/celestica/MAINTAINERS
+@@ -0,0 +1,8 @@
++Celestica OPENBMC BOARDS
++M:	Micky Zhan <mzhan@celestica.com>
++S:	Maintained
++F:	board/celestica/
++F:	include/configs/cel_questone2.h
++F:	include/configs/cel_as58xx-cl.h
++F:	configs/cel_questone2_defconfig
++F:	configs/cel_as58xx-cl_defconfig
+diff --git a/configs/cel_as58xx-cl_defconfig b/configs/cel_as58xx-cl_defconfig
+new file mode 100644
+index 0000000..f607d82
+--- /dev/null
++++ b/configs/cel_as58xx-cl_defconfig
+@@ -0,0 +1,26 @@
++CONFIG_ARM=y
++CONFIG_TARGET_AS58XX_CL=y
++CONFIG_SPI_BOOT=y
++CONFIG_HUSH_PARSER=y
++# CONFIG_CMD_IMLS is not set
++# CONFIG_CMD_FLASH is not set
++# CONFIG_CMD_FPGA is not set
++# CONFIG_CMD_SETEXPR is not set
++CONFIG_OF_LIBFDT=y
++# CONFIG_FIT is not set
++CONFIG_FIT_VERBOSE=y
++CONFIG_FIT_SIGNATURE=y
++# CONFIG_DM=y
++# CONFIG_OF_CONTROL=y
++# CONFIG_OF_EMBED=y
++CONFIG_NETCONSOLE=y
++CONFIG_PHYLIB=y
++CONFIG_NETDEVICES=y
++CONFIG_DEBUG_UART=y
++CONFIG_DEBUG_UART_BASE=0x1E784000
++CONFIG_DEBUG_UART_CLOCK=24000000
++CONFIG_SYS_NS16550=y
++CONFIG_SPI_FLASH=y
++CONFIG_SPI_FLASH_MACRONIX=y
++CONFIG_SPI_FLASH_MTD=y
++CONFIG_SYS_PROMPT="Cel-boot=> "
+diff --git a/configs/cel_questone2_defconfig b/configs/cel_questone2_defconfig
+new file mode 100644
+index 0000000..ed9c090
+--- /dev/null
++++ b/configs/cel_questone2_defconfig
+@@ -0,0 +1,26 @@
++CONFIG_ARM=y
++CONFIG_TARGET_QUESTONE2=y
++CONFIG_SPI_BOOT=y
++CONFIG_HUSH_PARSER=y
++# CONFIG_CMD_IMLS is not set
++# CONFIG_CMD_FLASH is not set
++# CONFIG_CMD_FPGA is not set
++# CONFIG_CMD_SETEXPR is not set
++CONFIG_OF_LIBFDT=y
++# CONFIG_FIT is not set
++CONFIG_FIT_VERBOSE=y
++CONFIG_FIT_SIGNATURE=y
++# CONFIG_DM=y
++# CONFIG_OF_CONTROL=y
++# CONFIG_OF_EMBED=y
++CONFIG_NETCONSOLE=y
++CONFIG_PHYLIB=y
++CONFIG_NETDEVICES=y
++CONFIG_DEBUG_UART=y
++CONFIG_DEBUG_UART_BASE=0x1E784000
++CONFIG_DEBUG_UART_CLOCK=24000000
++CONFIG_SYS_NS16550=y
++CONFIG_SPI_FLASH=y
++CONFIG_SPI_FLASH_MACRONIX=y
++CONFIG_SPI_FLASH_MTD=y
++CONFIG_SYS_PROMPT="Cel-boot=> "
+diff --git a/drivers/net/aspeednic.c b/drivers/net/aspeednic.c
+index 473aee2..8ea8e08 100644
+--- a/drivers/net/aspeednic.c
++++ b/drivers/net/aspeednic.c
+@@ -1114,6 +1114,9 @@ static void aspeednic_probe_phy(struct eth_device *dev)
+ 
+ 	/* Check if the PHY is up to snuff..., max phy addr is 0x1f */
+ 	for (phy_addr = 0; phy_addr <= 0x1f; phy_addr++) {
++#ifdef CONFIG_CEL_AS58XX_CL
++		phy_addr = CONFIG_BCM54616S_PHY_ADDR;
++#endif
+ 		phy_id = phy_read_register(dev, MII_PHYSID1, phy_addr);
+ 		/*
+ 		 * When it is unable to found PHY,
+@@ -1139,6 +1142,19 @@ static int aspeednic_init(struct eth_device* dev, bd_t* bis)
+ 
+ 	aspeednic_write_hwaddr(dev);
+ 
++#ifdef CONFIG_CEL_AS58XX_CL
++	/*configure Gbe PHY 100M auto-nego enable*/
++	phy_write_register(dev, 0x04, 0x0e, 0x01e1);
++	phy_write_register(dev, 0x1c, 0x0e, 0x8804);
++	phy_write_register(dev, 0x1c, 0x0e, 0xb4e3);
++	phy_write_register(dev, 0x1c, 0x0e, 0xb864);
++	
++    phy_write_register(dev, 0x04, 0x0f, 0x01e1);
++	phy_write_register(dev, 0x1c, 0x0f, 0x8804);
++	phy_write_register(dev, 0x1c, 0x0f, 0xb4e3);
++	phy_write_register(dev, 0x1c, 0x0f, 0xb864);
++#endif
++
+ 	for (i = 0; i < NUM_RX_DESC; i++) {
+ 		rx_ring[i].status = cpu_to_le32(RXPKT_RDY);
+ 		rx_ring[i].buf = (u32)(&rx_buffer[i]);
+diff --git a/include/configs/cel_as58xx-cl.h b/include/configs/cel_as58xx-cl.h
+new file mode 100644
+index 0000000..3f21d67
+--- /dev/null
++++ b/include/configs/cel_as58xx-cl.h
+@@ -0,0 +1,261 @@
++/**
++ * (C) Copyright 2018, Celestica Inc.
++ *
++ * SPDX-License-Identifier:	GPL-2.0+
++**/
++#ifndef __CEL_AS58XX_CL_CONFIG_H
++#define __CEL_AS58XX_CL_CONFIG_H
++
++#define CONFIG_CEL_AS58XX_CL 1
++
++#define CONFIG_SYS_LONGHELP
++
++#define CONFIG_BOOTARGS   "debug console=ttyS0,9600n8 root=/dev/ram rw"
++#define CONFIG_BOOTFILE   "flash-cel_as58xx-cl"
++
++/*
++ * Serial configuration
++ */
++#define CONFIG_SYS_NS16550_COM1 AST_UART0_BASE
++#define CONFIG_CONS_INDEX       1
++#define CONFIG_ASPEED_COM       AST_UART0_BASE
++#define CONFIG_BAUDRATE         9600
++
++/*
++ * UART configurtion
++ */
++#define CONFIG_ASPEED_UART1_ENABLE
++#define CONFIG_ASPEED_UART1_BMC // by default, src is LPC for UART1
++#define CONFIG_ASPEED_UART2_ENABLE
++#define CONFIG_ASPEED_UART2_BMC // by default, src is LPC for UART2
++#define CONFIG_ASPEED_UART3_ENABLE
++#define CONFIG_ASPEED_UART4_ENABLE
++#define CONFIG_ASPEED_UART5_MAP_IO6
++#define CONFIG_DRAM_UART_TO_UART3
++
++/*
++ * NIC configuration
++ */
++#define CONFIG_BCM54616S_PHY_ADDR      0xd
++#define CONFIG_MAC2_ENABLE
++#define CONFIG_MAC1_PHY_SETTING     0
++#define CONFIG_MAC2_PHY_SETTING     0
++#define CONFIG_ASPEED_MAC_NUMBER  2
++#define CONFIG_ASPEED_MAC_CONFIG  2
++#define _PHY_SETTING_CONCAT(mac) CONFIG_MAC##mac##_PHY_SETTING
++#define _GET_MAC_PHY_SETTING(mac) _PHY_SETTING_CONCAT(mac)
++#define CONFIG_ASPEED_MAC_PHY_SETTING \
++  _GET_MAC_PHY_SETTING(CONFIG_ASPEED_MAC_CONFIG)
++#define CONFIG_MAC_INTERFACE_CLOCK_DELAY    0x2255
++#define CONFIG_RANDOM_MACADDR
++
++
++/*
++ * Watchdog configuration
++ */
++#define CONFIG_ASPEED_ENABLE_WATCHDOG
++#define CONFIG_ASPEED_ENABLE_DUAL_BOOT_WATCHDOG
++#define CONFIG_ASPEED_WATCHDOG_DUAL_BOOT_TIMEOUT \
++  (CONFIG_ASPEED_WATCHDOG_TIMEOUT - 5)
++
++#define CONFIG_MII_
++#define CONFIG_CMD_MII
++
++/*
++ * Enable DRAM ECC, going to lose 1/8 of memory
++ */
++#define CONFIG_DRAM_ECC
++
++
++#define CONFIG_CS0_SPL_KERNEL_LOAD    "200E0000"
++#define CONFIG_CS1_SPL_KERNEL_LOAD    "280E0000"
++
++#ifdef CONFIG_SPL
++#ifdef CONFIG_ASPEED_RECOVERY_BUILD
++#define CONFIG_SYS_REMAP_BASE     0x20015000
++#define CONFIG_SYS_UBOOT_START    0x20015000 /* Must be defined as-is */
++#define CONFIG_KERNEL_LOAD        CONFIG_CS0_SPL_KERNEL_LOAD
++#else
++#define CONFIG_SYS_REMAP_BASE     0x28084000
++#define CONFIG_SYS_UBOOT_START    0x28084000 /* Must be defined as-is */
++#define CONFIG_KERNEL_LOAD        CONFIG_CS1_SPL_KERNEL_LOAD
++#endif
++#define CONFIG_SYS_SPL_FIT_BASE   0x28080000
++#define CONFIG_SYS_RECOVERY_BASE  0x20015000
++#define CONFIG_SYS_ENV_BASE       0x28000000
++#else
++/* Legacy non-Verified boot configuration. */
++#define CONFIG_SYS_REMAP_BASE     0x00000000
++#define CONFIG_SYS_UBOOT_START    0x00000000
++#define CONFIG_SYS_ENV_BASE       0x20000000
++#ifdef CONFIG_FIT
++#define CONFIG_KERNEL_LOAD        "20080000"
++#else
++#define CONFIG_KERNEL_LOAD        "20080000 20480000"
++#endif
++#endif
++
++/*
++ * Environment configuration
++ * This used to have:
++ *   CONFIG_ENV_IS_IN_FLASH
++ *   CONFIG_ENV_IS_IN_SPI_FLASH
++ *   CONFIG_ENV_IS_NOWHERE
++ */
++#ifndef CONFIG_DEBUG_QEMU
++#define CONFIG_ASPEED_WRITE_DEFAULT_ENV
++#endif
++#if defined(CONFIG_ASPEED_RECOVERY_BUILD) || defined(CONFIG_SPL_BUILD)
++/* Prevent the Recovery build from using the RW environment. */
++#define CONFIG_ENV_IS_NOWHERE
++#else
++#define CONFIG_ENV_IS_IN_FLASH
++#define CONFIG_ENV_OVERWRITE
++#endif
++#define CONFIG_ENV_OFFSET        0x60000 /* environment starts here  */
++#define CONFIG_ENV_ADDR          (CONFIG_SYS_ENV_BASE + CONFIG_ENV_OFFSET)
++#define CONFIG_ENV_SIZE          0x20000 /* # of bytes of env, 128k */
++#define ENV_INITRD_HIGH "initrd_high=a0000000\0"
++#define CONFIG_EXTRA_ENV_SETTINGS                       \
++    "verify=no\0"                                       \
++    "spi_dma=no\0"                                      \
++    "updatefile=" CONFIG_BOOTFILE ".fit\0"              \
++    ENV_INITRD_HIGH                                     \
++    ""
++
++/*
++ * Watchdog timer configuration
++ */
++#define CONFIG_ASPEED_ENABLE_WATCHDOG
++#define CONFIG_ASPEED_WATCHDOG_TIMEOUT	(5*60) /* 5 minutes */
++/* #define CONFIG_ASPEED_WATCHDOG_TRIGGER_GPIO */
++
++/*
++ * Miscellaneous configurable options
++ */
++#define CONFIG_SYS_HZ     1000
++#define CONFIG_SYS_TIMERBASE	AST_TIMER_BASE 	/* use timer 1 */
++
++/*
++ * NIC configuration
++ */
++#define CONFIG_NET_RANDOM_ETHADDR
++#define CONFIG_LIB_RAND
++#define CONFIG_ASPEED_NET_NCSI
++
++/*
++ * Memory Test configuration
++ */
++#define CONFIG_SYS_MEMTEST_ITERATION 10
++
++/*
++ * Command configuration
++ */
++#define CONFIG_CMD_PING
++#define CONFIG_CMD_DHCP
++#define CONFIG_CMD_MEMINFO
++#define CONFIG_CMD_MEMTEST
++#define CONFIG_CMD_MEMTEST2
++#define CONFIG_CMD_TFTPPUT
++#define CONFIG_CMD_FLASH
++#define CONFIG_CMD_VBS
++
++/*
++ * Additional features configuration
++ */
++#define CONFIG_SHA256
++
++/* Configure the rare, boot-fail aftermath. */
++#ifdef CONFIG_CMD_VBS
++/* If this runs then verified-boot failed */
++#define CONFIG_POSTBOOT "vbs 6 60; bootm " CONFIG_CS0_SPL_KERNEL_LOAD "; "
++#else
++#define CONFIG_POSTBOOT " "
++#endif
++
++/*
++ * Recovery boot flow
++ */
++#ifdef CONFIG_ASPEED_RECOVERY_BUILD
++#define CONFIG_PREBOOT "setenv verify no; "
++#else
++#ifdef CONFIG_CMD_VBS
++#define CONFIG_PREBOOT "vbs oscheck; "
++#else
++#define CONFIG_PREBOOT " "
++#endif
++#endif
++
++/*
++ * Basic boot command configuration based on flash
++ */
++#define CONFIG_BOOTCOMMAND                                \
++  "bootm " CONFIG_KERNEL_LOAD "; " /* Location of FIT */  \
++  CONFIG_POSTBOOT
++
++/*
++ * Command to run in if CLI is used.
++ */
++#if defined(CONFIG_CMD_VBS) && defined(CONFIG_SPL)
++#define CONFIG_PRECLICOMMAND "vbs interrupt; "
++#endif
++
++/*
++ * Lock the BMC TPM during provisioning (perform 1-time operations)
++ */
++#define CONFIG_ASPEED_TPM_LOCK
++
++#ifdef CONFIG_SPL
++#ifdef CONFIG_SPL_BUILD
++/* This is an SPL build */
++
++
++#define CONFIG_SPL_DISPLAY_PRINT
++
++#define CONFIG_SPL_FRAMEWORK
++#define CONFIG_SPL_MAX_FOOTPRINT  0x15000
++
++/*  an SPL build the base is 0x0. */
++#define CONFIG_SYS_TEXT_BASE      0x00000000
++#define CONFIG_SPL_TEXT_BASE      CONFIG_SYS_TEXT_BASE
++
++/* Grow the stack down from 0x6000 to an expected max of 12kB. */
++#define CONFIG_SPL_STACK          (CONFIG_SYS_SRAM_BASE + 0x6000)
++#define CONFIG_SYS_INIT_SP_ADDR   CONFIG_SPL_STACK
++
++/* Establish an 'arena' for heap from 0x1000 - 0x3000, 8k */
++#define CONFIG_SYS_SPL_MALLOC_START (CONFIG_SYS_SRAM_BASE + 0x1000)
++#define CONFIG_SYS_SPL_MALLOC_SIZE  0x2000
++
++/* General SPL build feature includes. */
++#define CONFIG_SPL_LIBGENERIC_SUPPORT
++#define CONFIG_SPL_LIBCOMMON_SUPPORT
++#define CONFIG_SPL_SERIAL_SUPPORT
++#define CONFIG_SPL_I2C_SUPPORT
++
++/* Verified boot required features. */
++#define CONFIG_SPL_CRYPTO_SUPPORT
++#define CONFIG_SPL_HASH_SUPPORT
++#define CONFIG_SPL_SHA256_SUPPORT
++#define CONFIG_SPL_SHA256
++#define CONFIG_SPL_SHA1
++#define CONFIG_SPL_TPM
++
++#else
++/* This is a U-Boot build */
++
++/* During the U-Boot build the base address is the SPL FIT start address. */
++#define CONFIG_SYS_TEXT_BASE    CONFIG_SYS_UBOOT_START
++#endif
++#endif
++
++/*
++ * Autoboot configuration
++ */
++#define CONFIG_AUTOBOOT_PROMPT		"autoboot in %d seconds (stop with 'Delete' key)...\n"
++#define CONFIG_AUTOBOOT_STOP_STR	"\x1b\x5b\x33\x7e"	/* 'Delete', ESC[3~ */
++#define CONFIG_AUTOBOOT_KEYED
++
++#include "ast2500_common.h"
++
++#endif  /* __FBCMM_CONFIG_H */
+diff --git a/include/configs/cel_questone2.h b/include/configs/cel_questone2.h
+new file mode 100644
+index 0000000..ca94f77
+--- /dev/null
++++ b/include/configs/cel_questone2.h
+@@ -0,0 +1,252 @@
++/**
++ * (C) Copyright 2018, Celestica Inc.
++ *
++ * SPDX-License-Identifier:	GPL-2.0+
++**/
++#ifndef __CEL_QUESTONE2_CONFIG_H
++#define __CEL_QUESTONE2_CONFIG_H
++
++#define CONFIG_CEL_QUESTONE2 1
++
++#define CONFIG_SYS_LONGHELP
++
++#define CONFIG_BOOTARGS   "debug console=ttyS0,115200n8 root=/dev/ram rw"
++#define CONFIG_BOOTFILE   "flash-cel_questone2"
++
++/*
++ * Serial configuration
++ */
++#define CONFIG_SYS_NS16550_COM1 AST_UART0_BASE
++#define CONFIG_CONS_INDEX       1
++#define CONFIG_ASPEED_COM       AST_UART0_BASE
++#define CONFIG_BAUDRATE         115200
++
++/*
++ * UART configurtion
++ */
++#define CONFIG_ASPEED_UART1_ENABLE
++#define CONFIG_ASPEED_UART1_BMC // by default, src is LPC for UART1
++#define CONFIG_ASPEED_UART2_ENABLE
++#define CONFIG_ASPEED_UART2_BMC // by default, src is LPC for UART2
++#define CONFIG_ASPEED_UART3_ENABLE
++#define CONFIG_ASPEED_UART4_ENABLE
++#define CONFIG_ASPEED_UART5_MAP_IO6
++
++/*
++ * NIC configuration
++ */
++#define CONFIG_MAC2_ENABLE
++#define CONFIG_MAC1_PHY_SETTING     0
++#define CONFIG_MAC2_PHY_SETTING     0
++#define CONFIG_ASPEED_MAC_NUMBER  2
++#define CONFIG_ASPEED_MAC_CONFIG  2
++
++/*
++ * Watchdog configuration
++ */
++#define CONFIG_ASPEED_ENABLE_WATCHDOG
++#define CONFIG_ASPEED_ENABLE_DUAL_BOOT_WATCHDOG
++#define CONFIG_ASPEED_WATCHDOG_DUAL_BOOT_TIMEOUT \
++  (CONFIG_ASPEED_WATCHDOG_TIMEOUT - 5)
++
++#define CONFIG_MII_
++#define CONFIG_CMD_MII
++
++/*
++ * Enable DRAM ECC, going to lose 1/8 of memory
++ */
++#define CONFIG_DRAM_ECC
++
++
++#define CONFIG_CS0_SPL_KERNEL_LOAD    "200E0000"
++#define CONFIG_CS1_SPL_KERNEL_LOAD    "280E0000"
++
++#ifdef CONFIG_SPL
++#ifdef CONFIG_ASPEED_RECOVERY_BUILD
++#define CONFIG_SYS_REMAP_BASE     0x20015000
++#define CONFIG_SYS_UBOOT_START    0x20015000 /* Must be defined as-is */
++#define CONFIG_KERNEL_LOAD        CONFIG_CS0_SPL_KERNEL_LOAD
++#else
++#define CONFIG_SYS_REMAP_BASE     0x28084000
++#define CONFIG_SYS_UBOOT_START    0x28084000 /* Must be defined as-is */
++#define CONFIG_KERNEL_LOAD        CONFIG_CS1_SPL_KERNEL_LOAD
++#endif
++#define CONFIG_SYS_SPL_FIT_BASE   0x28080000
++#define CONFIG_SYS_RECOVERY_BASE  0x20015000
++#define CONFIG_SYS_ENV_BASE       0x28000000
++#else
++/* Legacy non-Verified boot configuration. */
++#define CONFIG_SYS_REMAP_BASE     0x00000000
++#define CONFIG_SYS_UBOOT_START    0x00000000
++#define CONFIG_SYS_ENV_BASE       0x20000000
++#ifdef CONFIG_FIT
++#define CONFIG_KERNEL_LOAD        "20080000"
++#else
++#define CONFIG_KERNEL_LOAD        "20080000 20480000"
++#endif
++#endif
++
++/*
++ * Environment configuration
++ * This used to have:
++ *   CONFIG_ENV_IS_IN_FLASH
++ *   CONFIG_ENV_IS_IN_SPI_FLASH
++ *   CONFIG_ENV_IS_NOWHERE
++ */
++#ifndef CONFIG_DEBUG_QEMU
++#define CONFIG_ASPEED_WRITE_DEFAULT_ENV
++#endif
++#if defined(CONFIG_ASPEED_RECOVERY_BUILD) || defined(CONFIG_SPL_BUILD)
++/* Prevent the Recovery build from using the RW environment. */
++#define CONFIG_ENV_IS_NOWHERE
++#else
++#define CONFIG_ENV_IS_IN_FLASH
++#define CONFIG_ENV_OVERWRITE
++#endif
++#define CONFIG_ENV_OFFSET        0x60000 /* environment starts here  */
++#define CONFIG_ENV_ADDR          (CONFIG_SYS_ENV_BASE + CONFIG_ENV_OFFSET)
++#define CONFIG_ENV_SIZE          0x20000 /* # of bytes of env, 128k */
++#define ENV_INITRD_HIGH "initrd_high=a0000000\0"
++#define CONFIG_EXTRA_ENV_SETTINGS                       \
++    "verify=no\0"                                       \
++    "spi_dma=no\0"                                      \
++    "updatefile=" CONFIG_BOOTFILE ".fit\0"              \
++    ENV_INITRD_HIGH                                     \
++    ""
++
++/*
++ * Watchdog timer configuration
++ */
++#define CONFIG_ASPEED_ENABLE_WATCHDOG
++#define CONFIG_ASPEED_WATCHDOG_TIMEOUT	(5*60) /* 5 minutes */
++/* #define CONFIG_ASPEED_WATCHDOG_TRIGGER_GPIO */
++
++/*
++ * Miscellaneous configurable options
++ */
++#define CONFIG_SYS_HZ     1000
++#define CONFIG_SYS_TIMERBASE	AST_TIMER_BASE 	/* use timer 1 */
++
++/*
++ * NIC configuration
++ */
++#define CONFIG_NET_RANDOM_ETHADDR
++#define CONFIG_LIB_RAND
++#define CONFIG_ASPEED_NET_NCSI
++
++/*
++ * Memory Test configuration
++ */
++#define CONFIG_SYS_MEMTEST_ITERATION 10
++
++/*
++ * Command configuration
++ */
++#define CONFIG_CMD_PING
++#define CONFIG_CMD_DHCP
++#define CONFIG_CMD_MEMINFO
++#define CONFIG_CMD_MEMTEST
++#define CONFIG_CMD_MEMTEST2
++#define CONFIG_CMD_TFTPPUT
++#define CONFIG_CMD_FLASH
++#define CONFIG_CMD_VBS
++
++/*
++ * Additional features configuration
++ */
++#define CONFIG_SHA256
++
++/* Configure the rare, boot-fail aftermath. */
++#ifdef CONFIG_CMD_VBS
++/* If this runs then verified-boot failed */
++#define CONFIG_POSTBOOT "vbs 6 60; bootm " CONFIG_CS0_SPL_KERNEL_LOAD "; "
++#else
++#define CONFIG_POSTBOOT " "
++#endif
++
++/*
++ * Recovery boot flow
++ */
++#ifdef CONFIG_ASPEED_RECOVERY_BUILD
++#define CONFIG_PREBOOT "setenv verify no; "
++#else
++#ifdef CONFIG_CMD_VBS
++#define CONFIG_PREBOOT "vbs oscheck; "
++#else
++#define CONFIG_PREBOOT " "
++#endif
++#endif
++
++/*
++ * Basic boot command configuration based on flash
++ */
++#define CONFIG_BOOTCOMMAND                                \
++  "bootm " CONFIG_KERNEL_LOAD "; " /* Location of FIT */  \
++  CONFIG_POSTBOOT
++
++/*
++ * Command to run in if CLI is used.
++ */
++#if defined(CONFIG_CMD_VBS) && defined(CONFIG_SPL)
++#define CONFIG_PRECLICOMMAND "vbs interrupt; "
++#endif
++
++/*
++ * Lock the BMC TPM during provisioning (perform 1-time operations)
++ */
++#define CONFIG_ASPEED_TPM_LOCK
++
++#ifdef CONFIG_SPL
++#ifdef CONFIG_SPL_BUILD
++/* This is an SPL build */
++
++
++#define CONFIG_SPL_DISPLAY_PRINT
++
++#define CONFIG_SPL_FRAMEWORK
++#define CONFIG_SPL_MAX_FOOTPRINT  0x15000
++
++/*  an SPL build the base is 0x0. */
++#define CONFIG_SYS_TEXT_BASE      0x00000000
++#define CONFIG_SPL_TEXT_BASE      CONFIG_SYS_TEXT_BASE
++
++/* Grow the stack down from 0x6000 to an expected max of 12kB. */
++#define CONFIG_SPL_STACK          (CONFIG_SYS_SRAM_BASE + 0x6000)
++#define CONFIG_SYS_INIT_SP_ADDR   CONFIG_SPL_STACK
++
++/* Establish an 'arena' for heap from 0x1000 - 0x3000, 8k */
++#define CONFIG_SYS_SPL_MALLOC_START (CONFIG_SYS_SRAM_BASE + 0x1000)
++#define CONFIG_SYS_SPL_MALLOC_SIZE  0x2000
++
++/* General SPL build feature includes. */
++#define CONFIG_SPL_LIBGENERIC_SUPPORT
++#define CONFIG_SPL_LIBCOMMON_SUPPORT
++#define CONFIG_SPL_SERIAL_SUPPORT
++#define CONFIG_SPL_I2C_SUPPORT
++
++/* Verified boot required features. */
++#define CONFIG_SPL_CRYPTO_SUPPORT
++#define CONFIG_SPL_HASH_SUPPORT
++#define CONFIG_SPL_SHA256_SUPPORT
++#define CONFIG_SPL_SHA256
++#define CONFIG_SPL_SHA1
++#define CONFIG_SPL_TPM
++
++#else
++/* This is a U-Boot build */
++
++/* During the U-Boot build the base address is the SPL FIT start address. */
++#define CONFIG_SYS_TEXT_BASE    CONFIG_SYS_UBOOT_START
++#endif
++#endif
++
++/*
++ * Autoboot configuration
++ */
++#define CONFIG_AUTOBOOT_PROMPT		"autoboot in %d seconds (stop with 'Delete' key)...\n"
++#define CONFIG_AUTOBOOT_STOP_STR	"\x1b\x5b\x33\x7e"	/* 'Delete', ESC[3~ */
++#define CONFIG_AUTOBOOT_KEYED
++
++#include "ast2500_common.h"
++
++#endif  /* __FBCMM_CONFIG_H */
+-- 
+2.7.4
+
