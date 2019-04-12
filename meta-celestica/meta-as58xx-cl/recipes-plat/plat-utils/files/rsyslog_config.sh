@@ -32,4 +32,3 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 #runsv /etc/sv/rsyslog > /dev/null 2>&1 &
 #sv restapi
 
-/etc/init.d/syslog.rsyslog restart
